@@ -7,7 +7,8 @@ namespace AillieoUtils.EasyGraph
 {
     public class EasyGraphWindow : EditorWindow
     {
-        private readonly Canvas rootCanvas = new Canvas();
+        //private readonly Canvas rootCanvas = new Canvas(new Rect(0, 0, 500f, 300f));
+        private readonly Canvas rootCanvas = new Canvas(new Rect(30, 30, 500, 300f));
 
         public static readonly float titleHeight = 23.0f;
 
@@ -49,24 +50,23 @@ namespace AillieoUtils.EasyGraph
 
         private void OnGUI()
         {
-            CurrentCanvas.Begin();
-
             if (CurrentCanvas.HandleGUIEvent())
             {
                 GUI.changed = true;
             }
 
-            if(Event.current.type == EventType.Repaint)
+            if (Event.current.type == EventType.Repaint)
             {
                 CanvasObject.Draw(CurrentCanvas);
             }
+
+            GUI.Label(new Rect(CurrentCanvas.Rect),string.Format("Offset={0}Scale={1}", CurrentCanvas.Offset, CurrentCanvas.Scale));
 
             if (GUI.changed)
             {
                 Repaint();
             }
 
-            CurrentCanvas.End();
         }
 
     }

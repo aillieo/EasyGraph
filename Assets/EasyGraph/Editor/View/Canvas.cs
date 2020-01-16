@@ -13,28 +13,16 @@ namespace AillieoUtils.EasyGraph
 {
     public class Canvas : CanvasObject
     {
+        public Canvas(Rect rect)
+        {
+            this.Rect = rect;
+        }
 
         public float Scale { get; private set; } = 1.0f;
         public Vector2 Offset { get; private set; } = Vector2.zero;
-
-        public Matrix4x4 Transform
-        {
-            get
-            {
-                return Matrix4x4.TRS((Vector3)(Offset + Vector2.up * EasyGraphWindow.titleHeight), Quaternion.identity, Vector3.one * Scale);
-            }
-        }
-        public Rect Position
-        {
-            get
-            {
-                return new Rect(Offset, Size);
-            }
-        }
+        public Rect Rect { get; private set; }
 
 
-
-        public static readonly Vector2 Size = new Vector2(1000, 500);
         public static readonly Vector2 CanvasScaleRange = new Vector2(0.2f, 5f);
         private static readonly float baseGridSpacing = 20;
         private static readonly int subGridFactor = 5;
@@ -48,8 +36,9 @@ namespace AillieoUtils.EasyGraph
 
         protected override void OnDraw()
         {
-            GUI.Box(Position, string.Empty, "box");
             DrawGrids();
+
+            this.Begin();
 
             if (Event.current.type == EventType.Repaint)
             {
@@ -64,6 +53,8 @@ namespace AillieoUtils.EasyGraph
                     }
                 }
             }
+
+            this.End();
         }
 
         public bool HandleGUIEvent()
@@ -71,6 +62,7 @@ namespace AillieoUtils.EasyGraph
             Event current = Event.current;
 
             bool handled = false;
+
 
             for (int i = managedLayers.Count - 1; i >= 0; --i)
             {
@@ -82,91 +74,98 @@ namespace AillieoUtils.EasyGraph
                         handled = ele.HandleGUIEvent(current);
                         if (handled)
                         {
-                            return true;
+                            break;
                         }
                     }
                 }
             }
-            return HandleGUIEvent(current);
+
+
+            if(!handled)
+            {
+                handled = HandleGUIEvent(current);
+            }
+            return handled;
         }
 
         protected override bool OnMouseDrag(Vector2 pos, Vector2 delta)
         {
-            Offset += delta;
+            Offset += delta / Scale;
             CheckBounds();
+
+            Event.current.Use();
+
             return true;
         }
 
         protected override bool OnScroll(Vector2 pos, float delta)
         {
-
-            float newScale = Scale - delta * 0.05f;
+            float newScale = Scale - delta * 0.005f;
             newScale = Mathf.Clamp(newScale, CanvasScaleRange.x, CanvasScaleRange.y);
-
-            // pos 是scale过的 window坐标系下的点坐标
-
-
+           
             if (Mathf.Abs(newScale - Scale) > float.Epsilon)
             {
-
-                Vector2 posInCanvas = pos - Offset;
-                Vector2 posToWindow = pos * Scale;
-
-                Vector2 newPos = posToWindow / newScale;
-                Vector2 newOffset = newPos - posInCanvas;
+                Vector2 scaledOffset = Offset * Scale;
+                Vector2 scaledSize = Rect.size * Scale;
+                Vector2 start = Rect.position + scaledOffset;
+                Vector2 center = start + scaledSize / 2;
+                Vector2 posToCenter = pos - center;
+                Vector2 newPosToCenter = posToCenter / Scale * newScale;
+                Vector2 newCenter = pos - newPosToCenter;
+                Vector2 newScaledSize = Rect.size * newScale;
+                Vector2 newStart = newCenter - newScaledSize / 2;
+                Vector2 newScaledOffset = newStart - Rect.position;
+                Offset = newScaledOffset / newScale;
 
                 Scale = newScale;
-                Offset = newOffset;
-
                 CheckBounds();
             }
+            Event.current.Use();
+
             return true;
         }
 
         protected override bool OnContextClick(Vector2 pos)
         {
+
+
             GenericMenu genericMenu = new GenericMenu();
-            genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node(pos - Offset)));
-            //genericMenu.DropDown(new Rect(pos + Vector2.up * EasyGraphWindow.titleHeight * (1 - Scale), Vector2.zero));
+            Vector2 posCanvas = WindowPosToCanvasPos(pos) - Offset * 2;
+
+            genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node(posCanvas)));
+            //Rect r = new Rect(pos, new Vector2(0, 0));
+            //genericMenu.DropDown(r);
             genericMenu.ShowAsContext();
             return true;
         }
 
         private void CheckBounds()
         {
-            Vector2 winSize = WindowClip.size;
-            float x = Mathf.Clamp(Offset.x, -Size.x, winSize.x);
-            float y = Mathf.Clamp(Offset.y, -Size.y, winSize.y);
+            float x = Mathf.Clamp(Offset.x, Rect.size.x / Scale - Rect.size.x / Scale - Rect.size.x, Rect.size.x / Scale);
+            float y = Mathf.Clamp(Offset.y, Rect.size.y / Scale - Rect.size.y / Scale - Rect.size.y, Rect.size.y / Scale);
             Offset = new Vector2(x, y);
         }
 
 
-
+        // 调完Begin 进入Canvas空间
         public void Begin()
         {
-            Rect windowRect = new Rect(Vector2.zero, GUIUtils.WindowPosition.size);
+            GUI.Box(this.Rect, GUIContent.none, new GUIStyle("box"));
 
             GUI.EndGroup();
 
-            Rect windowClip = RectUtils.ScaleRect(windowRect, 1.0f / Scale);
-            windowClip = RectUtils.OffsetRect(windowClip,Vector2.up * EasyGraphWindow.titleHeight);
-            WindowClip = windowClip;
+            Rect canvasRect = RectUtils.ScaleRect(this.Rect, 1.0f / Scale, RectUtils.GetLeftTop(this.Rect));
+            canvasRect = RectUtils.OffsetRect(canvasRect,Vector2.up * EasyGraphWindow.titleHeight);
 
-            GUI.BeginGroup(WindowClip);
+            GUI.BeginGroup(canvasRect);
 
-            // local2world
-            Matrix4x4 transMat = Matrix4x4.TRS(WindowClip.min, Quaternion.identity, Vector3.one);
-
-            // scale
-            Vector3 scale = new Vector3(Scale, Scale, 1);
-            Matrix4x4 scaleMat = Matrix4x4.Scale(scale);
-
-            // world2local --> scale --> local2world
-            Matrix4x4 mat = transMat * scaleMat * transMat.inverse * GUI.matrix;
-
-            GUIUtils.PushGUIMatrix(mat);
+            Matrix4x4 translation = Matrix4x4.TRS(RectUtils.GetLeftTop(canvasRect), Quaternion.identity, Vector3.one);
+            Matrix4x4 scale = Matrix4x4.Scale(new Vector3(Scale, Scale, 1.0f));
+            Matrix4x4 transform = translation * scale * translation.inverse * GUI.matrix;
+            GUIUtils.PushGUIMatrix(transform);
         }
 
+        // 调完End 退出Canvas空间 返回Window空间
         public void End()
         {
             GUIUtils.PopGUIMatrix();
@@ -180,8 +179,13 @@ namespace AillieoUtils.EasyGraph
             Handles.BeginGUI();
             GUIUtils.PushHandlesColor(colorDark);
             Rect rect = GUIUtils.WindowPosition;
-            int xGrid = Mathf.RoundToInt(Size.x / baseGridSpacing);
-            int yGrid = Mathf.RoundToInt(Size.y / baseGridSpacing);
+
+            float scaledSpacing = baseGridSpacing * Scale;
+            Vector2 scaledSize = Rect.size * Scale;
+            Vector2 scaledOffset = Offset * Scale;
+
+            int xGrid = Mathf.RoundToInt(scaledSize.x / scaledSpacing);
+            int yGrid = Mathf.RoundToInt(scaledSize.y / scaledSpacing);
 
             for (int x = 1; x < xGrid; ++x)
             {
@@ -190,8 +194,8 @@ namespace AillieoUtils.EasyGraph
                 {
                     GUIUtils.PushHandlesColor(colorLight);
                 }
-                Vector3 start = Vector3.right * baseGridSpacing * x + (Vector3)Offset;
-                Vector3 end = start + Vector3.up * Size.y;
+                Vector3 start = (Vector3)Rect.position + Vector3.right * scaledSpacing * x + (Vector3)scaledOffset;
+                Vector3 end = start + Vector3.up * scaledSize.y;
                 Handles.DrawLine(start, end);
                 if (thick)
                 {
@@ -205,8 +209,8 @@ namespace AillieoUtils.EasyGraph
                 {
                     GUIUtils.PushHandlesColor(colorLight);
                 }
-                Vector3 start = Vector3.up * y * baseGridSpacing + (Vector3)Offset;
-                Vector3 end = start + Vector3.right * Size.x;
+                Vector3 start = (Vector3)Rect.position + Vector3.up * y * scaledSpacing + (Vector3)scaledOffset;
+                Vector3 end = start + Vector3.right * scaledSize.x;
                 Handles.DrawLine(start, end);
                 if (thick)
                 {
@@ -218,8 +222,10 @@ namespace AillieoUtils.EasyGraph
             Handles.EndGUI();
         }
 
-        public Rect WindowClip { get; private set; }
-
+        public Vector2 WindowPosToCanvasPos(Vector2 windowPos)
+        {
+            return (windowPos - RectUtils.GetLeftTop(this.Rect)) / this.Scale + this.Offset;
+        }
 
         public void AddElement(CanvasElement canvasElement)
         {
@@ -243,5 +249,6 @@ namespace AillieoUtils.EasyGraph
                 elementList.Remove(canvasElement);
             }
         }
+
     }
 }
