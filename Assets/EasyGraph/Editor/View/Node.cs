@@ -22,8 +22,8 @@ namespace AillieoUtils.EasyGraph
         {
             get
             {
-                //return new Rect(Position, Size);
-                return RectUtils.OffsetRect(new Rect(Position, Size), EasyGraphWindow.CurrentCanvas.Offset);
+                return new Rect(Position, Size);
+                //return RectUtils.OffsetRect(new Rect(Position, Size), EasyGraphWindow.CurrentCanvas.Offset);
             } 
         }
 
@@ -31,17 +31,17 @@ namespace AillieoUtils.EasyGraph
 
         protected override void OnDraw()
         {
-            GUI.Box(Rect, $"node{this.Position}", Style);
-            //GUI.Box(RectUtils.OffsetRect(new Rect(Position, Size), EasyGraphWindow.CurrentCanvas.Offset), "node" + this.Position, Style);
+            GUI.Box(RectUtils.OffsetRect(new Rect(Position, Size), EasyGraphWindow.CurrentCanvas.Offset), $"node{this.Position}", Style);
         }
 
         protected override bool OnMouseDrag(Vector2 pos, Vector2 delta)
         {
-            //pos = EasyGraphWindow.CurrentCanvas.WindowPosToCanvasPos(pos) - EasyGraphWindow.CurrentCanvas. Offset * 2;
+            Rect r = EasyGraphWindow.CurrentCanvas.CanvasRectToWindowRect(Rect);
 
-            if (Rect.Contains(pos))
+            if (r.Contains(pos))
             {
-                Position += delta;
+                Position += delta / EasyGraphWindow.CurrentCanvas.Scale;
+                Event.current.Use();
                 return true;
             }
             return false;
@@ -49,10 +49,10 @@ namespace AillieoUtils.EasyGraph
 
         protected override bool OnContextClick(Vector2 pos)
         {
-            pos = EasyGraphWindow.CurrentCanvas.WindowPosToCanvasPos(pos) - EasyGraphWindow.CurrentCanvas. Offset * 0;
+            Rect r = EasyGraphWindow.CurrentCanvas.CanvasRectToWindowRect(Rect);
 
             // 转移到Canvas中判断
-            if (Rect.Contains(pos))
+            if (r.Contains(pos))
             { 
                 GenericMenu genericMenu = new GenericMenu();
                 genericMenu.AddItem(new GUIContent("Make link"), false, () => ConnectUtils.currentBuilder.StartWith(this));
@@ -65,7 +65,9 @@ namespace AillieoUtils.EasyGraph
 
         protected override bool OnMouseDown(Vector2 pos)
         {
-            if (!Rect.Contains(pos))
+            Rect r = EasyGraphWindow.CurrentCanvas.CanvasRectToWindowRect(Rect);
+
+            if (!r.Contains(pos))
             {
                 return false;
             }

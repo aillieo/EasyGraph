@@ -8,7 +8,7 @@ namespace AillieoUtils.EasyGraph
     public class EasyGraphWindow : EditorWindow
     {
         //private readonly Canvas rootCanvas = new Canvas(new Rect(0, 0, 500f, 300f));
-        private readonly Canvas rootCanvas = new Canvas(new Rect(30, 30, 500, 300f));
+        private readonly Canvas rootCanvas = new Canvas(new Rect(90, 90, 500, 300f));
 
         public static readonly float titleHeight = 23.0f;
 

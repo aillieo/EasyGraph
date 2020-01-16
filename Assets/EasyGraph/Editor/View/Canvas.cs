@@ -127,14 +127,12 @@ namespace AillieoUtils.EasyGraph
 
         protected override bool OnContextClick(Vector2 pos)
         {
-
-
             GenericMenu genericMenu = new GenericMenu();
             Vector2 posCanvas = WindowPosToCanvasPos(pos) - Offset * 2;
 
             genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node(posCanvas)));
-            //Rect r = new Rect(pos, new Vector2(0, 0));
-            //genericMenu.DropDown(r);
+            genericMenu.AddItem(new GUIContent("Reset"), false, () => { Scale = 1; Offset = Vector2.zero; });
+
             genericMenu.ShowAsContext();
             return true;
         }
@@ -225,6 +223,20 @@ namespace AillieoUtils.EasyGraph
         public Vector2 WindowPosToCanvasPos(Vector2 windowPos)
         {
             return (windowPos - RectUtils.GetLeftTop(this.Rect)) / this.Scale + this.Offset;
+        }
+
+        public Vector2 CanvasPosToWindowPos(Vector2 canvasPos)
+        {
+            return canvasPos * Scale + Offset * Scale;
+            //return (canvasPos - this.Offset) * this.Scale + RectUtils.GetLeftTop(this.Rect);
+        }
+
+        public Rect CanvasRectToWindowRect(Rect canvasRect)
+        {
+            Rect rect = RectUtils.ScaleRect(canvasRect, Scale);
+            rect.position = CanvasPosToWindowPos(rect.position);
+            rect.position += EasyGraphWindow.CurrentCanvas.Rect.position;
+            return rect;
         }
 
         public void AddElement(CanvasElement canvasElement)

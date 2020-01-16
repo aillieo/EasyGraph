@@ -21,7 +21,7 @@ namespace AillieoUtils.EasyGraph
         {
             Vector2 mousePos = Event.current.mousePosition;
             Handles.DrawLine(
-            nodeFrom.Rect.center,
+            RectUtils.OffsetRect(nodeFrom.Rect, EasyGraphWindow.CurrentCanvas.Offset).center,
             mousePos);
             GUI.changed = true;
         }

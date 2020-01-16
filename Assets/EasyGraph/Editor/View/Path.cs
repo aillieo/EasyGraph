@@ -23,11 +23,13 @@ namespace AillieoUtils.EasyGraph
         {
             Vector2 horizonDiff = Vector2.right * (nodeFrom.Position - nodeTo.Position).x;
             Vector2 horizonDir = horizonDiff.normalized;
+            Vector2 pointFrom = RectUtils.OffsetRect(nodeFrom.Rect, EasyGraphWindow.CurrentCanvas.Offset).center;
+            Vector2 pointTo = RectUtils.OffsetRect(nodeTo.Rect, EasyGraphWindow.CurrentCanvas.Offset).center;
             Handles.DrawBezier(
-                nodeFrom.Rect.center,
-                nodeTo.Rect.center,
-                nodeFrom.Rect.center - horizonDir * 200f,
-                nodeTo.Rect.center + horizonDir * 200f,
+                pointFrom,
+                pointTo,
+                pointFrom - horizonDir * 200f,
+                pointTo + horizonDir * 200f,
                 Color.black,
                 null,
                 2f);
