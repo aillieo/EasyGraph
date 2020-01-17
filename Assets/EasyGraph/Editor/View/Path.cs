@@ -35,6 +35,10 @@ namespace AillieoUtils.EasyGraph
                 2f);
         }
 
+        protected override bool RectContainsPoint(Vector2 pos)
+        {
+            return false;
+        }
     }
 
 }

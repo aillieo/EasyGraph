@@ -11,10 +11,7 @@ namespace AillieoUtils.EasyGraph
 
         public class Builder
         {
-            //private Builder() { };
-
             private Node nodeFrom;
-            private Node nodeTo;
             private DummyPath dummyPath;
 
             public bool IsBuilding
@@ -59,9 +56,14 @@ namespace AillieoUtils.EasyGraph
                     dummyPath = null;
                 }
                 nodeFrom = null;
-                nodeTo = null;
             }
+
         }
 
+
+        public static void RemoveAllConnections(Node node)
+        {
+            Debug.Log("RemoveAllConnections");
+        }
     }
 }

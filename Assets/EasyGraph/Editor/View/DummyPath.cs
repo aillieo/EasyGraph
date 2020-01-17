@@ -26,6 +26,10 @@ namespace AillieoUtils.EasyGraph
             GUI.changed = true;
         }
 
+        protected override bool RectContainsPoint(Vector2 pos)
+        {
+            return false;
+        }
     }
 
 }

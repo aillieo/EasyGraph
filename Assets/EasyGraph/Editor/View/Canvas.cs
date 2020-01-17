@@ -13,15 +13,10 @@ namespace AillieoUtils.EasyGraph
 {
     public class Canvas : CanvasObject
     {
-        public Canvas(Rect rect)
-        {
-            this.Rect = rect;
-        }
-
         public float Scale { get; private set; } = 1.0f;
         public Vector2 Offset { get; private set; } = Vector2.zero;
-        public Rect Rect { get; private set; }
-
+        public Rect Rect { get { return new Rect(new Rect(90, 90, 500, 300f)); } }
+        // public Rect Rect {get { return new Rect(Vector2.zero, EasyGraphWindow.Instance.position.size); } }
 
         public static readonly Vector2 CanvasScaleRange = new Vector2(0.2f, 5f);
         private static readonly float baseGridSpacing = 20;
@@ -57,6 +52,11 @@ namespace AillieoUtils.EasyGraph
             this.End();
         }
 
+        protected override bool RectContainsPoint(Vector2 pos)
+        {
+            return Rect.Contains(pos);
+        }
+
         public bool HandleGUIEvent()
         {
             Event current = Event.current;
@@ -86,70 +86,72 @@ namespace AillieoUtils.EasyGraph
             return handled;
         }
 
-        protected override bool OnMouseDown(Vector2 pos)
+        protected override bool OnMouseDown(Event evt)
         {
-            if(Rect.Contains(pos))
+            if(evt.button == 0)
             {
                 SelectUtils.currentSelected = null;
                 return true;
             }
+            else
+            {
+                if(ConnectUtils.currentBuilder.IsBuilding)
+                {
+                    ConnectUtils.currentBuilder.Abandon();
+                    return true;
+                }
+            }
             return false;
         }
 
-        protected override bool OnMouseDrag(Vector2 pos, Vector2 delta)
+        protected override bool OnMouseDrag(Event evt)
         {
-            if(Rect.Contains(pos))
+            if(evt.button == 2)
             {
-                Offset += delta / Scale;
+                Offset += evt.delta / Scale;
                 CheckBounds();
                 return true;
             }
             return false;
         }
 
-        protected override bool OnScroll(Vector2 pos, float delta)
+        protected override bool OnScroll(Event evt)
         {
-            if(Rect.Contains(pos))
+            float newScale = Scale - evt.delta.y * 0.005f;
+            newScale = Mathf.Clamp(newScale, CanvasScaleRange.x, CanvasScaleRange.y);
+
+            if (Mathf.Abs(newScale - Scale) > float.Epsilon)
             {
-                float newScale = Scale - delta * 0.005f;
-                newScale = Mathf.Clamp(newScale, CanvasScaleRange.x, CanvasScaleRange.y);
+                Vector2 pos = evt.mousePosition;
+                Vector2 scaledOffset = Offset * Scale;
+                Vector2 scaledSize = Rect.size * Scale;
+                Vector2 start = Rect.position + scaledOffset;
+                Vector2 center = start + scaledSize / 2;
+                Vector2 posToCenter = pos - center;
+                Vector2 newPosToCenter = posToCenter / Scale * newScale;
+                Vector2 newCenter = pos - newPosToCenter;
+                Vector2 newScaledSize = Rect.size * newScale;
+                Vector2 newStart = newCenter - newScaledSize / 2;
+                Vector2 newScaledOffset = newStart - Rect.position;
+                Offset = newScaledOffset / newScale;
 
-                if (Mathf.Abs(newScale - Scale) > float.Epsilon)
-                {
-                    Vector2 scaledOffset = Offset * Scale;
-                    Vector2 scaledSize = Rect.size * Scale;
-                    Vector2 start = Rect.position + scaledOffset;
-                    Vector2 center = start + scaledSize / 2;
-                    Vector2 posToCenter = pos - center;
-                    Vector2 newPosToCenter = posToCenter / Scale * newScale;
-                    Vector2 newCenter = pos - newPosToCenter;
-                    Vector2 newScaledSize = Rect.size * newScale;
-                    Vector2 newStart = newCenter - newScaledSize / 2;
-                    Vector2 newScaledOffset = newStart - Rect.position;
-                    Offset = newScaledOffset / newScale;
-
-                    Scale = newScale;
-                    CheckBounds();
-                }
-                return true;
+                Scale = newScale;
+                CheckBounds();
             }
-            return false;
+            return true;
+
         }
 
-        protected override bool OnContextClick(Vector2 pos)
+        protected override bool OnContextClick(Event evt)
         {
-            if(Rect.Contains(pos))
-            {
-                GenericMenu genericMenu = new GenericMenu();
-                Vector2 posCanvas = WindowPosToCanvasPos(pos) - Offset * 2;
+            GenericMenu genericMenu = new GenericMenu();
+            Vector2 posCanvas = WindowPosToCanvasPos(evt.mousePosition) - Offset * 2;
 
-                genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node(posCanvas)));
-                genericMenu.AddItem(new GUIContent("Reset"), false, () => { Scale = 1; Offset = Vector2.zero; });
+            genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node(posCanvas)));
+            genericMenu.AddItem(new GUIContent("Reset"), false, () => { Scale = 1; Offset = Vector2.zero; });
 
-                genericMenu.ShowAsContext();
-                return true;
-            }
-            return false;
+            genericMenu.ShowAsContext();
+            return true;
         }
 
         private void CheckBounds()
@@ -192,9 +194,9 @@ namespace AillieoUtils.EasyGraph
             Handles.BeginGUI();
             GUIUtils.PushHandlesColor(colorDark);
 
-            float scaledSpacing = baseGridSpacing;// * Scale;
-            Vector2 scaledSize = Rect.size;// * Scale;
-            Vector2 scaledOffset = Offset - EasyGraphWindow.CurrentCanvas.Rect.position;// * Scale;
+            float scaledSpacing = baseGridSpacing;
+            Vector2 scaledSize = Rect.size;
+            Vector2 scaledOffset = Offset - EasyGraphWindow.CurrentCanvas.Rect.position;
 
             int xGrid = Mathf.RoundToInt(scaledSize.x / scaledSpacing);
             int yGrid = Mathf.RoundToInt(scaledSize.y / scaledSpacing);
@@ -242,7 +244,6 @@ namespace AillieoUtils.EasyGraph
         public Vector2 CanvasPosToWindowPos(Vector2 canvasPos)
         {
             return canvasPos * Scale + Offset * Scale;
-            //return (canvasPos - this.Offset) * this.Scale + RectUtils.GetLeftTop(this.Rect);
         }
 
         public Rect CanvasRectToWindowRect(Rect canvasRect)

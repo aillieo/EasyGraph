@@ -46,52 +46,46 @@ namespace AillieoUtils.EasyGraph
                 data.name);
         }
 
-        protected override bool OnMouseDrag(Vector2 pos, Vector2 delta)
+        protected override bool RectContainsPoint(Vector2 pos)
         {
             Rect r = EasyGraphWindow.CurrentCanvas.CanvasRectToWindowRect(Rect);
+            return r.Contains(pos);
+        }
 
-            if (r.Contains(pos))
+        protected override bool OnMouseDrag(Event evt)
+        {
+            if (evt.button == 0)
             {
-                Position += delta / EasyGraphWindow.CurrentCanvas.Scale;
+                Position += evt.delta / EasyGraphWindow.CurrentCanvas.Scale;
                 return true;
             }
             return false;
         }
 
-        protected override bool OnContextClick(Vector2 pos)
+        protected override bool OnContextClick(Event evt)
         {
-            Rect r = EasyGraphWindow.CurrentCanvas.CanvasRectToWindowRect(Rect);
-
-            if (r.Contains(pos))
-            { 
-                GenericMenu genericMenu = new GenericMenu();
-                genericMenu.AddItem(new GUIContent("Make link"), false, () => ConnectUtils.currentBuilder.StartWith(this));
-                genericMenu.AddItem(new GUIContent("Remove Node"), false, () => EasyGraphWindow.CurrentCanvas.RemoveElement(this));
-                genericMenu.DropDown(new Rect(pos,Vector2.zero));
-                return true;
-            }
-            return false;
+            GenericMenu genericMenu = new GenericMenu();
+            genericMenu.AddItem(new GUIContent("Make link"), false, () => ConnectUtils.currentBuilder.StartWith(this));
+            genericMenu.AddItem(new GUIContent("Detach Node"), false, () => ConnectUtils.RemoveAllConnections(this));
+            genericMenu.AddItem(new GUIContent("Remove Node"), false, () => EasyGraphWindow.CurrentCanvas.RemoveElement(this));
+            genericMenu.DropDown(new Rect(evt.mousePosition,Vector2.zero));
+            return true;
         }
 
-        protected override bool OnMouseDown(Vector2 pos)
+        protected override bool OnMouseDown(Event evt)
         {
-            Rect r = EasyGraphWindow.CurrentCanvas.CanvasRectToWindowRect(Rect);
-
-            if (!r.Contains(pos))
+            if(evt.button == 0)
             {
-                return false;
-            }
-            if(ConnectUtils.currentBuilder.IsBuilding)
-            {
-                ConnectUtils.currentBuilder.FinishWith(this);
+                if (ConnectUtils.currentBuilder.IsBuilding)
+                {
+                    ConnectUtils.currentBuilder.FinishWith(this);
+                }
+                if (SelectUtils.currentSelected != this)
+                {
+                    SelectUtils.currentSelected = this;
+                }
                 return true;
             }
-            if(SelectUtils.currentSelected != this)
-            {
-                SelectUtils.currentSelected = this;
-                return true;
-            }
-
             return false;
         }
 

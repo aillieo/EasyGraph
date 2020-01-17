@@ -9,7 +9,7 @@ namespace AillieoUtils.EasyGraph
 
         public static void Draw(CanvasObject canvasObject)
         {
-            if(canvasObject != null)
+            if (canvasObject != null)
             {
                 canvasObject.OnDraw();
             }
@@ -17,83 +17,86 @@ namespace AillieoUtils.EasyGraph
 
         protected abstract void OnDraw();
 
+        protected abstract bool RectContainsPoint(Vector2 pos);
 
-        public bool HandleGUIEvent(Event @event)
+        public bool HandleGUIEvent(Event evt)
         {
             bool handled = false;
-            switch (@event.type)
+
+            if(evt.isMouse && RectContainsPoint(evt.mousePosition))
             {
-                // mouse
-                case EventType.MouseDown:
-                    if (@event.button == 0)
-                    {
-                        handled = OnMouseDown(@event.mousePosition);
-                    }
-                    break;
-                case EventType.MouseUp:
-                    if (@event.button == 0)
-                    {
-                        handled = OnMouseUp(@event.mousePosition);
-                    }
-                    break;
-                case EventType.ContextClick:
-                    handled = OnContextClick(@event.mousePosition);
-                    break;
-                case EventType.MouseDrag:
-                    if (@event.button == 2)
-                    {
-                        handled = OnMouseDrag(@event.mousePosition, @event.delta);
-                    }
-                    break;
-                case EventType.ScrollWheel:
-                    handled = OnScroll(@event.mousePosition, @event.delta.y);
-                    break;
-                // key
-                case EventType.KeyDown:
-                    handled = OnKeyDown(@event.keyCode);
-                    break;
-                case EventType.KeyUp:
-                    handled = OnKeyUp(@event.keyCode);
-                    break;
+                switch (evt.type)
+                {
+                    // mouse
+                    case EventType.MouseDown:
+                        handled = OnMouseDown(evt);
+                        break;
+                    case EventType.MouseUp:
+                        handled = OnMouseUp(evt);
+                        break;
+                    case EventType.ContextClick:
+                        handled = OnContextClick(evt);
+                        break;
+                    case EventType.MouseDrag:
+                        handled = OnMouseDrag(evt);
+                        break;
+                }
             }
-            if(handled)
+            else
             {
-                @event.Use();
+                switch (evt.type)
+                {
+                    case EventType.ScrollWheel:
+                        handled = OnScroll(evt);
+                        break;
+                    // key
+                    case EventType.KeyDown:
+                        handled = OnKeyDown(evt);
+                        break;
+                    case EventType.KeyUp:
+                        handled = OnKeyUp(evt);
+                        break;
+                }
+            }
+
+            if (handled)
+            {
+                evt.Use();
             }
             return handled;
         }
 
-        protected virtual bool OnKeyUp(KeyCode keyCode)
+        protected virtual bool OnKeyUp(Event evt)
         {
             return false;
         }
 
-        protected virtual bool OnKeyDown(KeyCode keyCode)
+        protected virtual bool OnKeyDown(Event evt)
         {
             return false;
         }
 
-        protected virtual bool OnMouseDown(Vector2 pos)
+        protected virtual bool OnMouseDown(Event evt)
         {
             return false;
         }
 
-        protected virtual bool OnMouseUp(Vector2 pos)
+        protected virtual bool OnMouseUp(Event evt)
         {
             return false;
         }
 
-        protected virtual bool OnContextClick(Vector2 pos)
+        protected virtual bool OnContextClick(Event evt)
         {
             return false;
         }
 
-        protected virtual bool OnMouseDrag(Vector2 pos, Vector2 delta)
+        protected virtual bool OnMouseDrag(Event evt)
         {
             return false;
         }
 
-        protected virtual bool OnScroll(Vector2 pos, float delta)
+        protected virtual bool OnScroll(Event evt)
         {
             return false;
         }
