@@ -2,23 +2,11 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using Canvas = AillieoUtils.EasyGraph.Canvas;
 
 namespace AillieoUtils.EasyGraph
 {
     public static class GUIUtils
     {
-        #region shortcuts
-        public static Rect WindowPosition
-        {
-            get
-            {
-                return EasyGraphWindow.Instance.position;
-            }
-        }
-        
-        #endregion
-
         #region color management
         private static Stack<Color> guiColorStack = new Stack<Color>();
         public static void PushGUIColor(Color color)

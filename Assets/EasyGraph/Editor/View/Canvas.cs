@@ -36,9 +36,9 @@ namespace AillieoUtils.EasyGraph
 
         protected override void OnDraw()
         {
-            DrawGrids();
-
             this.Begin();
+
+            DrawGrids();
 
             if (Event.current.type == EventType.Repaint)
             {
@@ -63,7 +63,6 @@ namespace AillieoUtils.EasyGraph
 
             bool handled = false;
 
-
             for (int i = managedLayers.Count - 1; i >= 0; --i)
             {
                 int layer = managedLayers[i];
@@ -80,7 +79,6 @@ namespace AillieoUtils.EasyGraph
                 }
             }
 
-
             if(!handled)
             {
                 handled = HandleGUIEvent(current);
@@ -88,53 +86,70 @@ namespace AillieoUtils.EasyGraph
             return handled;
         }
 
+        protected override bool OnMouseDown(Vector2 pos)
+        {
+            if(Rect.Contains(pos))
+            {
+                SelectUtils.currentSelected = null;
+                return true;
+            }
+            return false;
+        }
+
         protected override bool OnMouseDrag(Vector2 pos, Vector2 delta)
         {
-            Offset += delta / Scale;
-            CheckBounds();
-
-            Event.current.Use();
-
-            return true;
+            if(Rect.Contains(pos))
+            {
+                Offset += delta / Scale;
+                CheckBounds();
+                return true;
+            }
+            return false;
         }
 
         protected override bool OnScroll(Vector2 pos, float delta)
         {
-            float newScale = Scale - delta * 0.005f;
-            newScale = Mathf.Clamp(newScale, CanvasScaleRange.x, CanvasScaleRange.y);
-           
-            if (Mathf.Abs(newScale - Scale) > float.Epsilon)
+            if(Rect.Contains(pos))
             {
-                Vector2 scaledOffset = Offset * Scale;
-                Vector2 scaledSize = Rect.size * Scale;
-                Vector2 start = Rect.position + scaledOffset;
-                Vector2 center = start + scaledSize / 2;
-                Vector2 posToCenter = pos - center;
-                Vector2 newPosToCenter = posToCenter / Scale * newScale;
-                Vector2 newCenter = pos - newPosToCenter;
-                Vector2 newScaledSize = Rect.size * newScale;
-                Vector2 newStart = newCenter - newScaledSize / 2;
-                Vector2 newScaledOffset = newStart - Rect.position;
-                Offset = newScaledOffset / newScale;
+                float newScale = Scale - delta * 0.005f;
+                newScale = Mathf.Clamp(newScale, CanvasScaleRange.x, CanvasScaleRange.y);
 
-                Scale = newScale;
-                CheckBounds();
+                if (Mathf.Abs(newScale - Scale) > float.Epsilon)
+                {
+                    Vector2 scaledOffset = Offset * Scale;
+                    Vector2 scaledSize = Rect.size * Scale;
+                    Vector2 start = Rect.position + scaledOffset;
+                    Vector2 center = start + scaledSize / 2;
+                    Vector2 posToCenter = pos - center;
+                    Vector2 newPosToCenter = posToCenter / Scale * newScale;
+                    Vector2 newCenter = pos - newPosToCenter;
+                    Vector2 newScaledSize = Rect.size * newScale;
+                    Vector2 newStart = newCenter - newScaledSize / 2;
+                    Vector2 newScaledOffset = newStart - Rect.position;
+                    Offset = newScaledOffset / newScale;
+
+                    Scale = newScale;
+                    CheckBounds();
+                }
+                return true;
             }
-            Event.current.Use();
-
-            return true;
+            return false;
         }
 
         protected override bool OnContextClick(Vector2 pos)
         {
-            GenericMenu genericMenu = new GenericMenu();
-            Vector2 posCanvas = WindowPosToCanvasPos(pos) - Offset * 2;
+            if(Rect.Contains(pos))
+            {
+                GenericMenu genericMenu = new GenericMenu();
+                Vector2 posCanvas = WindowPosToCanvasPos(pos) - Offset * 2;
 
-            genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node(posCanvas)));
-            genericMenu.AddItem(new GUIContent("Reset"), false, () => { Scale = 1; Offset = Vector2.zero; });
+                genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node(posCanvas)));
+                genericMenu.AddItem(new GUIContent("Reset"), false, () => { Scale = 1; Offset = Vector2.zero; });
 
-            genericMenu.ShowAsContext();
-            return true;
+                genericMenu.ShowAsContext();
+                return true;
+            }
+            return false;
         }
 
         private void CheckBounds()
@@ -176,11 +191,10 @@ namespace AillieoUtils.EasyGraph
         {
             Handles.BeginGUI();
             GUIUtils.PushHandlesColor(colorDark);
-            Rect rect = GUIUtils.WindowPosition;
 
-            float scaledSpacing = baseGridSpacing * Scale;
-            Vector2 scaledSize = Rect.size * Scale;
-            Vector2 scaledOffset = Offset * Scale;
+            float scaledSpacing = baseGridSpacing;// * Scale;
+            Vector2 scaledSize = Rect.size;// * Scale;
+            Vector2 scaledOffset = Offset - EasyGraphWindow.CurrentCanvas.Rect.position;// * Scale;
 
             int xGrid = Mathf.RoundToInt(scaledSize.x / scaledSpacing);
             int yGrid = Mathf.RoundToInt(scaledSize.y / scaledSpacing);

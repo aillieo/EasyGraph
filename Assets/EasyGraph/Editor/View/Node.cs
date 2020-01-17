@@ -12,6 +12,8 @@ namespace AillieoUtils.EasyGraph
             this.Position = canvasPos;
         }
 
+        public readonly DefaultNodeData data = new DefaultNodeData();
+
         public override int Layer => LayerDefine.Node;
 
 
@@ -31,7 +33,17 @@ namespace AillieoUtils.EasyGraph
 
         protected override void OnDraw()
         {
-            GUI.Box(RectUtils.OffsetRect(new Rect(Position, Size), EasyGraphWindow.CurrentCanvas.Offset), $"node{this.Position}", Style);
+            Rect position = RectUtils.OffsetRect(new Rect(Position, Size), EasyGraphWindow.CurrentCanvas.Offset);
+            if (this == SelectUtils.currentSelected)
+            {
+                GUIUtils.PushGUIColor(Color.blue);
+                GUI.Box(RectUtils.ScaleRect(position, 1.1f, position.center),"", new GUIStyle("box"));
+                GUIUtils.PopGUIColor();
+            }
+            GUI.Box(position, $"node{this.Position}", Style);
+            GUI.Label(
+                new Rect(position.position + EditorGUIUtility.singleLineHeight * Vector2.up, new Vector2(position.width, EditorGUIUtility.singleLineHeight)),
+                data.name);
         }
 
         protected override bool OnMouseDrag(Vector2 pos, Vector2 delta)
@@ -41,7 +53,6 @@ namespace AillieoUtils.EasyGraph
             if (r.Contains(pos))
             {
                 Position += delta / EasyGraphWindow.CurrentCanvas.Scale;
-                Event.current.Use();
                 return true;
             }
             return false;
@@ -51,7 +62,6 @@ namespace AillieoUtils.EasyGraph
         {
             Rect r = EasyGraphWindow.CurrentCanvas.CanvasRectToWindowRect(Rect);
 
-            // 转移到Canvas中判断
             if (r.Contains(pos))
             { 
                 GenericMenu genericMenu = new GenericMenu();
@@ -74,6 +84,11 @@ namespace AillieoUtils.EasyGraph
             if(ConnectUtils.currentBuilder.IsBuilding)
             {
                 ConnectUtils.currentBuilder.FinishWith(this);
+                return true;
+            }
+            if(SelectUtils.currentSelected != this)
+            {
+                SelectUtils.currentSelected = this;
                 return true;
             }
 

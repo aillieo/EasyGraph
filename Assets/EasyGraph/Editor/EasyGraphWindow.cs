@@ -50,9 +50,17 @@ namespace AillieoUtils.EasyGraph
 
         private void OnGUI()
         {
-            if (CurrentCanvas.HandleGUIEvent())
+            bool eventHandled = CurrentCanvas.HandleGUIEvent();
+
+            GUI.Label(
+                new Rect(CurrentCanvas.Rect.position - 2 * Vector2.up * EditorGUIUtility.singleLineHeight, new Vector2(200, EditorGUIUtility.singleLineHeight)),
+                string.Format("Offset={0}Scale={1}", CurrentCanvas.Offset, CurrentCanvas.Scale));
+            if(SelectUtils.currentSelected != null)
             {
-                GUI.changed = true;
+                Node node = SelectUtils.currentSelected;
+                node.data.name = GUI.TextField(
+                    new Rect(CurrentCanvas.Rect.position - Vector2.up * EditorGUIUtility.singleLineHeight, new Vector2(200, EditorGUIUtility.singleLineHeight)),
+                    node.data.name);
             }
 
             if (Event.current.type == EventType.Repaint)
@@ -60,14 +68,10 @@ namespace AillieoUtils.EasyGraph
                 CanvasObject.Draw(CurrentCanvas);
             }
 
-            GUI.Label(new Rect(CurrentCanvas.Rect),string.Format("Offset={0}Scale={1}", CurrentCanvas.Offset, CurrentCanvas.Scale));
-
-            if (GUI.changed)
+            if(eventHandled)
             {
                 Repaint();
             }
-
         }
-
     }
 }

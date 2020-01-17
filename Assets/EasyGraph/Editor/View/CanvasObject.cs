@@ -20,38 +20,47 @@ namespace AillieoUtils.EasyGraph
 
         public bool HandleGUIEvent(Event @event)
         {
+            bool handled = false;
             switch (@event.type)
             {
                 // mouse
                 case EventType.MouseDown:
                     if (@event.button == 0)
                     {
-                        return OnMouseDown(@event.mousePosition);
+                        handled = OnMouseDown(@event.mousePosition);
                     }
                     break;
                 case EventType.MouseUp:
                     if (@event.button == 0)
                     {
-                        return OnMouseUp(@event.mousePosition);
+                        handled = OnMouseUp(@event.mousePosition);
                     }
                     break;
                 case EventType.ContextClick:
-                    return OnContextClick(@event.mousePosition);
+                    handled = OnContextClick(@event.mousePosition);
+                    break;
                 case EventType.MouseDrag:
-                    if (@event.button == 0)
+                    if (@event.button == 2)
                     {
-                        return OnMouseDrag(@event.mousePosition, @event.delta);
+                        handled = OnMouseDrag(@event.mousePosition, @event.delta);
                     }
                     break;
                 case EventType.ScrollWheel:
-                    return OnScroll(@event.mousePosition, @event.delta.y);
+                    handled = OnScroll(@event.mousePosition, @event.delta.y);
+                    break;
                 // key
                 case EventType.KeyDown:
-                    return OnKeyDown(@event.keyCode);
+                    handled = OnKeyDown(@event.keyCode);
+                    break;
                 case EventType.KeyUp:
-                    return OnKeyUp(@event.keyCode);
+                    handled = OnKeyUp(@event.keyCode);
+                    break;
             }
-            return false;
+            if(handled)
+            {
+                @event.Use();
+            }
+            return handled;
         }
 
         protected virtual bool OnKeyUp(KeyCode keyCode)
