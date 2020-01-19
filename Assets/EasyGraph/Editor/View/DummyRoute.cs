@@ -5,23 +5,23 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class DummyPath : CanvasElement
+    public class DummyRoute : CanvasElement
     {
 
-        public DummyPath(Node nodeFrom)
+        public DummyRoute(Node nodeFrom)
         {
             this.nodeFrom = nodeFrom;
         }
 
         private Node nodeFrom;
 
-        public override int Layer => LayerDefine.DummyPath;
+        public override int Layer => LayerDefine.DummyRoute;
 
         protected override void OnDraw()
         {
             Vector2 mousePos = Event.current.mousePosition;
             Handles.DrawLine(
-            RectUtils.OffsetRect(nodeFrom.Rect, EasyGraphWindow.CurrentCanvas.Offset).center,
+            RectUtils.OffsetRect(nodeFrom.Rect, EasyGraphWindow.Instance.Canvas.Offset).center,
             mousePos);
             GUI.changed = true;
         }
@@ -30,6 +30,12 @@ namespace AillieoUtils.EasyGraph
         {
             return false;
         }
+
+        protected override void OnAdd()
+        {}
+
+        protected override void OnRemove()
+        {}
     }
 
 }

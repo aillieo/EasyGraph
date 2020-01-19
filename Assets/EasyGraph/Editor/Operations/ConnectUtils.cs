@@ -12,14 +12,14 @@ namespace AillieoUtils.EasyGraph
         public class Builder
         {
             private Node nodeFrom;
-            private DummyPath dummyPath;
+            private DummyRoute dummyRoute;
 
             public bool IsBuilding
             {
-                get { return dummyPath != null; }
+                get { return dummyRoute != null; }
             }
 
-            public Path FinishWith(Node node)
+            public Route FinishWith(Node node)
             {
                 if(node == nodeFrom)
                 {
@@ -28,10 +28,12 @@ namespace AillieoUtils.EasyGraph
                 }
                 else
                 {
-                    Path path = new Path(nodeFrom,node);
-                    EasyGraphWindow.CurrentCanvas.AddElement(path);
+                    Route route = new Route(nodeFrom,node);
+                    EasyGraphWindow.Instance.Canvas.AddElement(route);
+                    nodeFrom.associatedRoutes.Add(route);
+                    node.associatedRoutes.Add(route);
                     CleanUp();
-                    return path;
+                    return route;
                 }
             }
 
@@ -44,16 +46,16 @@ namespace AillieoUtils.EasyGraph
             {
                 CleanUp();
                 nodeFrom = node;
-                dummyPath = new DummyPath(nodeFrom);
-                EasyGraphWindow.CurrentCanvas.AddElement(dummyPath);
+                dummyRoute = new DummyRoute(nodeFrom);
+                EasyGraphWindow.Instance.Canvas.AddElement(dummyRoute);
             }
 
             private void CleanUp()
             {
-                if(dummyPath != null)
+                if(dummyRoute != null)
                 {
-                    EasyGraphWindow.CurrentCanvas.RemoveElement(dummyPath);
-                    dummyPath = null;
+                    EasyGraphWindow.Instance.Canvas.RemoveElement(dummyRoute);
+                    dummyRoute = null;
                 }
                 nodeFrom = null;
             }
@@ -61,9 +63,14 @@ namespace AillieoUtils.EasyGraph
         }
 
 
-        public static void RemoveAllConnections(Node node)
+        public static void RemoveAllRoutes(Node node)
         {
-            Debug.Log("RemoveAllConnections");
+            Route[] routes = new Route[node.associatedRoutes.Count];
+            node.associatedRoutes.CopyTo(routes);
+            foreach (var r in routes)
+            {
+                 EasyGraphWindow.Instance.Canvas.RemoveElement(r);
+            }
         }
     }
 }

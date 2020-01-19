@@ -15,8 +15,7 @@ namespace AillieoUtils.EasyGraph
     {
         public float Scale { get; private set; } = 1.0f;
         public Vector2 Offset { get; private set; } = Vector2.zero;
-        public Rect Rect { get { return new Rect(new Rect(90, 90, 500, 300f)); } }
-        // public Rect Rect {get { return new Rect(Vector2.zero, EasyGraphWindow.Instance.position.size); } }
+        private Vector2 Size { get; } = new Vector2(1280f, 720f);
 
         public static readonly Vector2 CanvasScaleRange = new Vector2(0.2f, 5f);
         private static readonly float baseGridSpacing = 20;
@@ -54,7 +53,7 @@ namespace AillieoUtils.EasyGraph
 
         protected override bool RectContainsPoint(Vector2 pos)
         {
-            return Rect.Contains(pos);
+            return EasyGraphWindow.Instance.ViewRect.Contains(pos);
         }
 
         public bool HandleGUIEvent()
@@ -124,15 +123,15 @@ namespace AillieoUtils.EasyGraph
             {
                 Vector2 pos = evt.mousePosition;
                 Vector2 scaledOffset = Offset * Scale;
-                Vector2 scaledSize = Rect.size * Scale;
-                Vector2 start = Rect.position + scaledOffset;
+                Vector2 scaledSize = Size * Scale;
+                Vector2 start = EasyGraphWindow.Instance.ViewRect.position + scaledOffset;
                 Vector2 center = start + scaledSize / 2;
                 Vector2 posToCenter = pos - center;
                 Vector2 newPosToCenter = posToCenter / Scale * newScale;
                 Vector2 newCenter = pos - newPosToCenter;
-                Vector2 newScaledSize = Rect.size * newScale;
+                Vector2 newScaledSize = Size * newScale;
                 Vector2 newStart = newCenter - newScaledSize / 2;
-                Vector2 newScaledOffset = newStart - Rect.position;
+                Vector2 newScaledOffset = newStart - EasyGraphWindow.Instance.ViewRect.position;
                 Offset = newScaledOffset / newScale;
 
                 Scale = newScale;
@@ -145,7 +144,7 @@ namespace AillieoUtils.EasyGraph
         protected override bool OnContextClick(Event evt)
         {
             GenericMenu genericMenu = new GenericMenu();
-            Vector2 posCanvas = WindowPosToCanvasPos(evt.mousePosition) - Offset * 2;
+            Vector2 posCanvas = WindowPosToCanvasPos(evt.mousePosition);
 
             genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node(posCanvas)));
             genericMenu.AddItem(new GUIContent("Reset"), false, () => { Scale = 1; Offset = Vector2.zero; });
@@ -156,8 +155,9 @@ namespace AillieoUtils.EasyGraph
 
         private void CheckBounds()
         {
-            float x = Mathf.Clamp(Offset.x, Rect.size.x / Scale - Rect.size.x / Scale - Rect.size.x, Rect.size.x / Scale);
-            float y = Mathf.Clamp(Offset.y, Rect.size.y / Scale - Rect.size.y / Scale - Rect.size.y, Rect.size.y / Scale);
+            Rect viewRect = EasyGraphWindow.Instance.ViewRect;
+            float x = Mathf.Clamp(Offset.x, -Size.x, viewRect.size.x / Scale);
+            float y = Mathf.Clamp(Offset.y, -Size.y, viewRect.size.y / Scale);
             Offset = new Vector2(x, y);
         }
 
@@ -165,11 +165,13 @@ namespace AillieoUtils.EasyGraph
         // 调完Begin 进入Canvas空间
         public void Begin()
         {
-            GUI.Box(this.Rect, GUIContent.none, new GUIStyle("box"));
+            // 显示实际范围
+            //GUI.Box(this.Rect, GUIContent.none, new GUIStyle("box"));
+            GUI.Box(EasyGraphWindow.Instance.ViewRect, GUIContent.none, new GUIStyle("box"));
 
             GUI.EndGroup();
 
-            Rect canvasRect = RectUtils.ScaleRect(this.Rect, 1.0f / Scale, RectUtils.GetLeftTop(this.Rect));
+            Rect canvasRect = RectUtils.ScaleRect(EasyGraphWindow.Instance.ViewRect, 1.0f / Scale, RectUtils.GetLeftTop(EasyGraphWindow.Instance.ViewRect));
             canvasRect = RectUtils.OffsetRect(canvasRect,Vector2.up * EasyGraphWindow.titleHeight);
 
             GUI.BeginGroup(canvasRect);
@@ -191,12 +193,25 @@ namespace AillieoUtils.EasyGraph
 
         private void DrawGrids()
         {
+            /*
+            Texture2D gridTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/EasyGraph/Resources/bg1.png");
+            Vector2 tiles = new Vector2(
+                Size.x / gridTex.width,
+                Size.y / gridTex.height);
+
+            GUI.DrawTextureWithTexCoords(
+                new Rect(Offset, Size),
+                gridTex,
+                new Rect(Vector2.one * 0.5f, tiles)
+                );
+            */
+
             Handles.BeginGUI();
             GUIUtils.PushHandlesColor(colorDark);
 
             float scaledSpacing = baseGridSpacing;
-            Vector2 scaledSize = Rect.size;
-            Vector2 scaledOffset = Offset - EasyGraphWindow.CurrentCanvas.Rect.position;
+            Vector2 scaledSize = Size;
+            Vector2 scaledOffset = Offset;
 
             int xGrid = Mathf.RoundToInt(scaledSize.x / scaledSpacing);
             int yGrid = Mathf.RoundToInt(scaledSize.y / scaledSpacing);
@@ -208,7 +223,7 @@ namespace AillieoUtils.EasyGraph
                 {
                     GUIUtils.PushHandlesColor(colorLight);
                 }
-                Vector3 start = (Vector3)Rect.position + Vector3.right * scaledSpacing * x + (Vector3)scaledOffset;
+                Vector3 start = Vector3.right * scaledSpacing * x + (Vector3)scaledOffset;
                 Vector3 end = start + Vector3.up * scaledSize.y;
                 Handles.DrawLine(start, end);
                 if (thick)
@@ -223,7 +238,7 @@ namespace AillieoUtils.EasyGraph
                 {
                     GUIUtils.PushHandlesColor(colorLight);
                 }
-                Vector3 start = (Vector3)Rect.position + Vector3.up * y * scaledSpacing + (Vector3)scaledOffset;
+                Vector3 start = Vector3.up * y * scaledSpacing + (Vector3)scaledOffset;
                 Vector3 end = start + Vector3.right * scaledSize.x;
                 Handles.DrawLine(start, end);
                 if (thick)
@@ -238,19 +253,18 @@ namespace AillieoUtils.EasyGraph
 
         public Vector2 WindowPosToCanvasPos(Vector2 windowPos)
         {
-            return (windowPos - RectUtils.GetLeftTop(this.Rect)) / this.Scale + this.Offset;
+            return windowPos / this.Scale - this.Offset - EasyGraphWindow.Instance.ViewRect.position / Scale;
         }
 
         public Vector2 CanvasPosToWindowPos(Vector2 canvasPos)
         {
-            return canvasPos * Scale + Offset * Scale;
+            return canvasPos * Scale + Offset * Scale + EasyGraphWindow.Instance.ViewRect.position;
         }
 
         public Rect CanvasRectToWindowRect(Rect canvasRect)
         {
             Rect rect = RectUtils.ScaleRect(canvasRect, Scale);
             rect.position = CanvasPosToWindowPos(rect.position);
-            rect.position += EasyGraphWindow.CurrentCanvas.Rect.position;
             return rect;
         }
 
@@ -265,6 +279,7 @@ namespace AillieoUtils.EasyGraph
                 elementList = new List<CanvasElement>();
                 managedElements.Add(layer, elementList);
             }
+            CanvasElement.Add(canvasElement);
             elementList.Add(canvasElement);
         }
 
@@ -274,6 +289,7 @@ namespace AillieoUtils.EasyGraph
             if (managedElements.TryGetValue(layer, out List<CanvasElement> elementList))
             {
                 elementList.Remove(canvasElement);
+                CanvasElement.Remove(canvasElement);
             }
         }
 

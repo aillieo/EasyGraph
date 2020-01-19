@@ -16,6 +16,7 @@ namespace AillieoUtils.EasyGraph
 
         public override int Layer => LayerDefine.Node;
 
+        public readonly HashSet<Route> associatedRoutes = new HashSet<Route>();
 
         // canvas space
         public Vector2 Position { get; protected set; }
@@ -25,7 +26,6 @@ namespace AillieoUtils.EasyGraph
             get
             {
                 return new Rect(Position, Size);
-                //return RectUtils.OffsetRect(new Rect(Position, Size), EasyGraphWindow.CurrentCanvas.Offset);
             } 
         }
 
@@ -33,11 +33,11 @@ namespace AillieoUtils.EasyGraph
 
         protected override void OnDraw()
         {
-            Rect position = RectUtils.OffsetRect(new Rect(Position, Size), EasyGraphWindow.CurrentCanvas.Offset);
+            Rect position = RectUtils.OffsetRect(new Rect(Position, Size), EasyGraphWindow.Instance.Canvas.Offset);
             if (this == SelectUtils.currentSelected)
             {
                 GUIUtils.PushGUIColor(Color.blue);
-                GUI.Box(RectUtils.ScaleRect(position, 1.1f, position.center),"", new GUIStyle("box"));
+                GUI.Box(RectUtils.ScaleRect(position, 1.1f, position.center), GUIContent.none, new GUIStyle("box"));
                 GUIUtils.PopGUIColor();
             }
             GUI.Box(position, $"node{this.Position}", Style);
@@ -48,7 +48,7 @@ namespace AillieoUtils.EasyGraph
 
         protected override bool RectContainsPoint(Vector2 pos)
         {
-            Rect r = EasyGraphWindow.CurrentCanvas.CanvasRectToWindowRect(Rect);
+            Rect r = EasyGraphWindow.Instance.Canvas.CanvasRectToWindowRect(Rect);
             return r.Contains(pos);
         }
 
@@ -56,7 +56,7 @@ namespace AillieoUtils.EasyGraph
         {
             if (evt.button == 0)
             {
-                Position += evt.delta / EasyGraphWindow.CurrentCanvas.Scale;
+                Position += evt.delta / EasyGraphWindow.Instance.Canvas.Scale;
                 return true;
             }
             return false;
@@ -65,9 +65,9 @@ namespace AillieoUtils.EasyGraph
         protected override bool OnContextClick(Event evt)
         {
             GenericMenu genericMenu = new GenericMenu();
-            genericMenu.AddItem(new GUIContent("Make link"), false, () => ConnectUtils.currentBuilder.StartWith(this));
-            genericMenu.AddItem(new GUIContent("Detach Node"), false, () => ConnectUtils.RemoveAllConnections(this));
-            genericMenu.AddItem(new GUIContent("Remove Node"), false, () => EasyGraphWindow.CurrentCanvas.RemoveElement(this));
+            genericMenu.AddItem(new GUIContent("Make Route"), false, () => ConnectUtils.currentBuilder.StartWith(this));
+            genericMenu.AddItem(new GUIContent("Detach Node"), false, () => ConnectUtils.RemoveAllRoutes(this));
+            genericMenu.AddItem(new GUIContent("Remove Node"), false, () => EasyGraphWindow.Instance.Canvas.RemoveElement(this));
             genericMenu.DropDown(new Rect(evt.mousePosition,Vector2.zero));
             return true;
         }
@@ -89,6 +89,13 @@ namespace AillieoUtils.EasyGraph
             return false;
         }
 
+        protected override void OnAdd()
+        { }
+
+        protected override void OnRemove()
+        {
+            ConnectUtils.RemoveAllRoutes(this);
+        }
     }
 
 }

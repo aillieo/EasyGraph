@@ -23,7 +23,7 @@ namespace AillieoUtils.EasyGraph
         {
             bool handled = false;
 
-            if(evt.isMouse && RectContainsPoint(evt.mousePosition))
+            if(evt.isMouse && EasyGraphWindow.Instance.ViewRect.Contains(evt.mousePosition) && RectContainsPoint(evt.mousePosition))
             {
                 switch (evt.type)
                 {

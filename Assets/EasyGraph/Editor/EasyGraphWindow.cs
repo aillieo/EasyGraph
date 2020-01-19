@@ -7,28 +7,10 @@ namespace AillieoUtils.EasyGraph
 {
     public class EasyGraphWindow : EditorWindow
     {
-        private readonly Canvas rootCanvas = new Canvas();
-
         public static readonly float titleHeight = 23.0f;
 
-        private Canvas topCanvas;
-        public static Canvas CurrentCanvas
-        {
-            get
-            {
-                return Instance.topCanvas ?? Instance.rootCanvas;
-            }
-            set
-            {
-                Instance.topCanvas = value;
-                Instance.OnCanvasChanged?.Invoke(value);
-            }
-        }
-
-
-        public event Action<Canvas> OnCanvasChanged;
-
         private static EasyGraphWindow instance;
+                
         public static EasyGraphWindow Instance
         {
             get
@@ -47,24 +29,28 @@ namespace AillieoUtils.EasyGraph
             instance = GetWindow<EasyGraphWindow>("Easy Graph Window");
         }
 
+        public Canvas Canvas { get; private set; } = new Canvas();
+
+        public Rect ViewRect { get; private set; } = new Rect(300f, 300f, 300f, 300f);
+
         private void OnGUI()
         {
-            bool eventHandled = CurrentCanvas.HandleGUIEvent();
+            bool eventHandled = Canvas.HandleGUIEvent();
 
             GUI.Label(
-                new Rect(CurrentCanvas.Rect.position - 2 * Vector2.up * EditorGUIUtility.singleLineHeight, new Vector2(200, EditorGUIUtility.singleLineHeight)),
-                string.Format("Offset={0}Scale={1}", CurrentCanvas.Offset, CurrentCanvas.Scale));
+                new Rect(ViewRect.position - 2 * Vector2.up * EditorGUIUtility.singleLineHeight, new Vector2(200, EditorGUIUtility.singleLineHeight)),
+                string.Format("Offset={0}Scale={1}", Canvas.Offset, Canvas.Scale));
             if(SelectUtils.currentSelected != null)
             {
                 Node node = SelectUtils.currentSelected;
                 node.data.name = GUI.TextField(
-                    new Rect(CurrentCanvas.Rect.position - Vector2.up * EditorGUIUtility.singleLineHeight, new Vector2(200, EditorGUIUtility.singleLineHeight)),
+                    new Rect(ViewRect.position - Vector2.up * EditorGUIUtility.singleLineHeight, new Vector2(200, EditorGUIUtility.singleLineHeight)),
                     node.data.name);
             }
 
             if (Event.current.type == EventType.Repaint)
             {
-                CanvasObject.Draw(CurrentCanvas);
+                CanvasObject.Draw(Canvas);
             }
 
             if(eventHandled)
