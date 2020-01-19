@@ -7,6 +7,8 @@ namespace AillieoUtils.EasyGraph
 {
     public static class GUIUtils
     {
+        public static readonly float titleHeight = 23.0f;
+
         #region color management
         private static Stack<Color> guiColorStack = new Stack<Color>();
         public static void PushGUIColor(Color color)

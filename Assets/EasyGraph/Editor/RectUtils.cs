@@ -31,14 +31,5 @@ namespace AillieoUtils.EasyGraph
             return rect;
         }
 
-        public static Vector2 GetLeftTop(Rect rect)
-        {
-            return new Vector2(rect.xMin, rect.yMin);
-        }
-
-        public static Vector2 GetRightBottom(Rect rect)
-        {
-            return new Vector2(rect.xMax, rect.yMax);
-        }
     }
 }

@@ -166,17 +166,16 @@ namespace AillieoUtils.EasyGraph
         public void Begin()
         {
             // 显示实际范围
-            //GUI.Box(this.Rect, GUIContent.none, new GUIStyle("box"));
             GUI.Box(EasyGraphWindow.Instance.ViewRect, GUIContent.none, new GUIStyle("box"));
 
             GUI.EndGroup();
 
-            Rect canvasRect = RectUtils.ScaleRect(EasyGraphWindow.Instance.ViewRect, 1.0f / Scale, RectUtils.GetLeftTop(EasyGraphWindow.Instance.ViewRect));
-            canvasRect = RectUtils.OffsetRect(canvasRect,Vector2.up * EasyGraphWindow.titleHeight);
+            Rect canvasRect = RectUtils.ScaleRect(EasyGraphWindow.Instance.ViewRect, 1.0f / Scale, EasyGraphWindow.Instance.ViewRect.position);
+            canvasRect = RectUtils.OffsetRect(canvasRect,Vector2.up * GUIUtils.titleHeight);
 
             GUI.BeginGroup(canvasRect);
 
-            Matrix4x4 translation = Matrix4x4.TRS(RectUtils.GetLeftTop(canvasRect), Quaternion.identity, Vector3.one);
+            Matrix4x4 translation = Matrix4x4.TRS(canvasRect.position, Quaternion.identity, Vector3.one);
             Matrix4x4 scale = Matrix4x4.Scale(new Vector3(Scale, Scale, 1.0f));
             Matrix4x4 transform = translation * scale * translation.inverse * GUI.matrix;
             GUIUtils.PushGUIMatrix(transform);
@@ -187,7 +186,7 @@ namespace AillieoUtils.EasyGraph
         {
             GUIUtils.PopGUIMatrix();
             GUI.EndGroup();
-            GUI.BeginGroup(new Rect(0.0f, EasyGraphWindow.titleHeight, Screen.width, Screen.height));
+            GUI.BeginGroup(new Rect(0.0f, GUIUtils.titleHeight, Screen.width, Screen.height));
         }
 
 
