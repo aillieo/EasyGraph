@@ -29,7 +29,7 @@ namespace AillieoUtils.EasyGraph
                 else
                 {
                     Route route = new Route(nodeFrom,node);
-                    EasyGraphWindow.Instance.Canvas.AddElement(route);
+                    node.canvas.AddElement(route);
                     nodeFrom.associatedRoutes.Add(route);
                     node.associatedRoutes.Add(route);
                     CleanUp();
@@ -47,14 +47,14 @@ namespace AillieoUtils.EasyGraph
                 CleanUp();
                 nodeFrom = node;
                 dummyRoute = new DummyRoute(nodeFrom);
-                EasyGraphWindow.Instance.Canvas.AddElement(dummyRoute);
+                node.canvas.AddElement(dummyRoute);
             }
 
             private void CleanUp()
             {
                 if(dummyRoute != null)
                 {
-                    EasyGraphWindow.Instance.Canvas.RemoveElement(dummyRoute);
+                    dummyRoute.canvas.RemoveElement(dummyRoute);
                     dummyRoute = null;
                 }
                 nodeFrom = null;
@@ -69,7 +69,7 @@ namespace AillieoUtils.EasyGraph
             node.associatedRoutes.CopyTo(routes);
             foreach (var r in routes)
             {
-                 EasyGraphWindow.Instance.Canvas.RemoveElement(r);
+                node.canvas.RemoveElement(r);
             }
         }
     }

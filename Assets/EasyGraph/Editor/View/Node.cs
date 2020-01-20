@@ -33,11 +33,11 @@ namespace AillieoUtils.EasyGraph
 
         protected override void OnDraw()
         {
-            Rect position = RectUtils.OffsetRect(new Rect(Position, Size), EasyGraphWindow.Instance.Canvas.Offset);
+            Rect position = new Rect(Position, Size).Offset(canvas.Offset);
             if (this == SelectUtils.currentSelected)
             {
                 GUIUtils.PushGUIColor(Color.blue);
-                GUI.Box(RectUtils.ScaleRect(position, 1.1f, position.center), GUIContent.none, new GUIStyle("box"));
+                GUI.Box(new Rect(position).Scale(1.1f, position.center), GUIContent.none, new GUIStyle("box"));
                 GUIUtils.PopGUIColor();
             }
             GUI.Box(position, $"node{this.Position}", Style);
@@ -48,7 +48,7 @@ namespace AillieoUtils.EasyGraph
 
         protected override bool RectContainsPoint(Vector2 pos)
         {
-            Rect r = EasyGraphWindow.Instance.Canvas.CanvasRectToWindowRect(Rect);
+            Rect r = canvas.CanvasRectToWindowRect(Rect);
             return r.Contains(pos);
         }
 
@@ -56,7 +56,7 @@ namespace AillieoUtils.EasyGraph
         {
             if (evt.button == 0)
             {
-                Position += evt.delta / EasyGraphWindow.Instance.Canvas.Scale;
+                Position += evt.delta / canvas.Scale;
                 return true;
             }
             return false;
@@ -67,8 +67,8 @@ namespace AillieoUtils.EasyGraph
             GenericMenu genericMenu = new GenericMenu();
             genericMenu.AddItem(new GUIContent("Make Route"), false, () => ConnectUtils.currentBuilder.StartWith(this));
             genericMenu.AddItem(new GUIContent("Detach Node"), false, () => ConnectUtils.RemoveAllRoutes(this));
-            genericMenu.AddItem(new GUIContent("Remove Node"), false, () => EasyGraphWindow.Instance.Canvas.RemoveElement(this));
-            genericMenu.DropDown(new Rect(evt.mousePosition,Vector2.zero));
+            genericMenu.AddItem(new GUIContent("Remove Node"), false, () => canvas.RemoveElement(this));
+            genericMenu.ShowAsContext();
             return true;
         }
 

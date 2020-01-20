@@ -7,23 +7,13 @@ namespace AillieoUtils.EasyGraph
     public abstract class CanvasObject
     {
 
-        public static void Draw(CanvasObject canvasObject)
-        {
-            if (canvasObject != null)
-            {
-                canvasObject.OnDraw();
-            }
-        }
-
-        protected abstract void OnDraw();
-
         protected abstract bool RectContainsPoint(Vector2 pos);
 
         public bool HandleGUIEvent(Event evt)
         {
             bool handled = false;
 
-            if(evt.isMouse && EasyGraphWindow.Instance.ViewRect.Contains(evt.mousePosition) && RectContainsPoint(evt.mousePosition))
+            if(evt.isMouse && RectContainsPoint(evt.mousePosition))
             {
                 switch (evt.type)
                 {

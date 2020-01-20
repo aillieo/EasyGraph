@@ -13,23 +13,30 @@ namespace AillieoUtils.EasyGraph
 {
     public class Canvas : CanvasObject
     {
+        public Canvas(Vector2 size)
+        {
+            this.Size = size;
+        }
+
         public float Scale { get; private set; } = 1.0f;
         public Vector2 Offset { get; private set; } = Vector2.zero;
-        private Vector2 Size { get; } = new Vector2(1280f, 720f);
+
+        private readonly Vector2 Size;
 
         public static readonly Vector2 CanvasScaleRange = new Vector2(0.2f, 5f);
-        private static readonly float baseGridSpacing = 20;
-        private static readonly int subGridFactor = 5;
-        private static readonly Color colorLight = new Color(0.4f, 0.4f, 0.4f, 1f);
-        private static readonly Color colorDark = new Color(0.6f, 0.6f, 0.6f, 1f);
 
         // SortedDictionary 不能逆序遍历
         private readonly Dictionary<int, List<CanvasElement>> managedElements = new Dictionary<int, List<CanvasElement>>();
         private readonly List<int> managedLayers = new List<int>();
 
+        private Rect cachedViewRect;
 
-        protected override void OnDraw()
+        public void OnGUI(Rect viewRect)
         {
+            cachedViewRect = viewRect;
+
+            bool eventHandled = HandleGUIEvent();
+
             this.Begin();
 
             DrawGrids();
@@ -42,7 +49,7 @@ namespace AillieoUtils.EasyGraph
                     {
                         foreach (var ele in elementList)
                         {
-                            Draw(ele);
+                            CanvasElement.Draw(ele);
                         }
                     }
                 }
@@ -53,7 +60,7 @@ namespace AillieoUtils.EasyGraph
 
         protected override bool RectContainsPoint(Vector2 pos)
         {
-            return EasyGraphWindow.Instance.ViewRect.Contains(pos);
+            return cachedViewRect.Contains(pos);
         }
 
         public bool HandleGUIEvent()
@@ -61,6 +68,11 @@ namespace AillieoUtils.EasyGraph
             Event current = Event.current;
 
             bool handled = false;
+
+            if (current.isMouse && !cachedViewRect.Contains(current.mousePosition))
+            {
+                return false;
+            }
 
             for (int i = managedLayers.Count - 1; i >= 0; --i)
             {
@@ -121,17 +133,18 @@ namespace AillieoUtils.EasyGraph
 
             if (Mathf.Abs(newScale - Scale) > float.Epsilon)
             {
+                Vector2 position = cachedViewRect.position;
                 Vector2 pos = evt.mousePosition;
                 Vector2 scaledOffset = Offset * Scale;
                 Vector2 scaledSize = Size * Scale;
-                Vector2 start = EasyGraphWindow.Instance.ViewRect.position + scaledOffset;
+                Vector2 start = position + scaledOffset;
                 Vector2 center = start + scaledSize / 2;
                 Vector2 posToCenter = pos - center;
                 Vector2 newPosToCenter = posToCenter / Scale * newScale;
                 Vector2 newCenter = pos - newPosToCenter;
                 Vector2 newScaledSize = Size * newScale;
                 Vector2 newStart = newCenter - newScaledSize / 2;
-                Vector2 newScaledOffset = newStart - EasyGraphWindow.Instance.ViewRect.position;
+                Vector2 newScaledOffset = newStart - position;
                 Offset = newScaledOffset / newScale;
 
                 Scale = newScale;
@@ -148,6 +161,7 @@ namespace AillieoUtils.EasyGraph
 
             genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node(posCanvas)));
             genericMenu.AddItem(new GUIContent("Reset"), false, () => { Scale = 1; Offset = Vector2.zero; });
+            genericMenu.AddItem(new GUIContent("Fit All"), false, FitAllNodes);
 
             genericMenu.ShowAsContext();
             return true;
@@ -155,23 +169,22 @@ namespace AillieoUtils.EasyGraph
 
         private void CheckBounds()
         {
-            Rect viewRect = EasyGraphWindow.Instance.ViewRect;
-            float x = Mathf.Clamp(Offset.x, -Size.x, viewRect.size.x / Scale);
-            float y = Mathf.Clamp(Offset.y, -Size.y, viewRect.size.y / Scale);
+            float x = Mathf.Clamp(Offset.x, -Size.x, cachedViewRect.size.x / Scale);
+            float y = Mathf.Clamp(Offset.y, -Size.y, cachedViewRect.size.y / Scale);
             Offset = new Vector2(x, y);
         }
 
 
         // 调完Begin 进入Canvas空间
-        public void Begin()
+        private void Begin()
         {
             // 显示实际范围
-            GUI.Box(EasyGraphWindow.Instance.ViewRect, GUIContent.none, new GUIStyle("box"));
+            GUI.Box(cachedViewRect, GUIContent.none, new GUIStyle("box"));
 
             GUI.EndGroup();
 
-            Rect canvasRect = RectUtils.ScaleRect(EasyGraphWindow.Instance.ViewRect, 1.0f / Scale, EasyGraphWindow.Instance.ViewRect.position);
-            canvasRect = RectUtils.OffsetRect(canvasRect,Vector2.up * GUIUtils.titleHeight);
+            Rect canvasRect = new Rect(cachedViewRect).Scale(1.0f / Scale);
+            canvasRect = canvasRect.Offset(Vector2.up * GUIUtils.titleHeight);
 
             GUI.BeginGroup(canvasRect);
 
@@ -182,7 +195,7 @@ namespace AillieoUtils.EasyGraph
         }
 
         // 调完End 退出Canvas空间 返回Window空间
-        public void End()
+        private void End()
         {
             GUIUtils.PopGUIMatrix();
             GUI.EndGroup();
@@ -192,7 +205,6 @@ namespace AillieoUtils.EasyGraph
 
         private void DrawGrids()
         {
-            /*
             Texture2D gridTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/EasyGraph/Resources/bg1.png");
             Vector2 tiles = new Vector2(
                 Size.x / gridTex.width,
@@ -203,66 +215,21 @@ namespace AillieoUtils.EasyGraph
                 gridTex,
                 new Rect(Vector2.one * 0.5f, tiles)
                 );
-            */
-
-            Handles.BeginGUI();
-            GUIUtils.PushHandlesColor(colorDark);
-
-            float scaledSpacing = baseGridSpacing;
-            Vector2 scaledSize = Size;
-            Vector2 scaledOffset = Offset;
-
-            int xGrid = Mathf.RoundToInt(scaledSize.x / scaledSpacing);
-            int yGrid = Mathf.RoundToInt(scaledSize.y / scaledSpacing);
-
-            for (int x = 1; x < xGrid; ++x)
-            {
-                bool thick = (x % subGridFactor == 0);
-                if (thick)
-                {
-                    GUIUtils.PushHandlesColor(colorLight);
-                }
-                Vector3 start = Vector3.right * scaledSpacing * x + (Vector3)scaledOffset;
-                Vector3 end = start + Vector3.up * scaledSize.y;
-                Handles.DrawLine(start, end);
-                if (thick)
-                {
-                    GUIUtils.PopHandlesColor();
-                }
-            }
-            for (int y = 1; y < yGrid; ++y)
-            {
-                bool thick = (y % subGridFactor == 0);
-                if (thick)
-                {
-                    GUIUtils.PushHandlesColor(colorLight);
-                }
-                Vector3 start = Vector3.up * y * scaledSpacing + (Vector3)scaledOffset;
-                Vector3 end = start + Vector3.right * scaledSize.x;
-                Handles.DrawLine(start, end);
-                if (thick)
-                {
-                    GUIUtils.PopHandlesColor();
-                }
-            }
-
-            GUIUtils.PopHandlesColor();
-            Handles.EndGUI();
         }
 
         public Vector2 WindowPosToCanvasPos(Vector2 windowPos)
         {
-            return windowPos / this.Scale - this.Offset - EasyGraphWindow.Instance.ViewRect.position / Scale;
+            return windowPos / this.Scale - this.Offset - cachedViewRect.position / Scale;
         }
 
         public Vector2 CanvasPosToWindowPos(Vector2 canvasPos)
         {
-            return canvasPos * Scale + Offset * Scale + EasyGraphWindow.Instance.ViewRect.position;
+            return canvasPos * Scale + Offset * Scale + cachedViewRect.position;
         }
 
         public Rect CanvasRectToWindowRect(Rect canvasRect)
         {
-            Rect rect = RectUtils.ScaleRect(canvasRect, Scale);
+            Rect rect = canvasRect.Scale(Scale);
             rect.position = CanvasPosToWindowPos(rect.position);
             return rect;
         }
@@ -278,7 +245,7 @@ namespace AillieoUtils.EasyGraph
                 elementList = new List<CanvasElement>();
                 managedElements.Add(layer, elementList);
             }
-            CanvasElement.Add(canvasElement);
+            CanvasElement.Add(this, canvasElement);
             elementList.Add(canvasElement);
         }
 
@@ -292,5 +259,29 @@ namespace AillieoUtils.EasyGraph
             }
         }
 
+
+        private void FitAllNodes()
+        {
+            Rect rect = new Rect(Size/2 , Vector2.zero);
+            List<CanvasElement> elementList;
+            if (managedElements.TryGetValue(LayerDefine.Node,out elementList))
+            {
+                if (elementList.Count > 0)
+                {
+                    foreach (var ele in elementList)
+                    {
+                        Node node = ele as Node;
+                        if (node != null)
+                        {
+                            rect.Encapsulate(node.Rect);
+                        }
+                    }
+                }
+            }
+
+            Offset = (- rect.center + cachedViewRect.size / 2 / Scale);
+
+            CheckBounds();
+        }
     }
 }

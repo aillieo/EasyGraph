@@ -23,16 +23,16 @@ namespace AillieoUtils.EasyGraph
         {
             Vector2 horizonDiff = Vector2.right * (nodeFrom.Position - nodeTo.Position).x;
             Vector2 horizonDir = horizonDiff.normalized;
-            Vector2 pointFrom = RectUtils.OffsetRect(nodeFrom.Rect, EasyGraphWindow.Instance.Canvas.Offset).center;
-            Vector2 pointTo = RectUtils.OffsetRect(nodeTo.Rect, EasyGraphWindow.Instance.Canvas.Offset).center;
+            Vector2 pointFrom = new Rect(nodeFrom.Rect).Offset(canvas.Offset).center;
+            Vector2 pointTo = new Rect(nodeTo.Rect).Offset(canvas.Offset).center;
             Handles.DrawBezier(
                 pointFrom,
                 pointTo,
                 pointFrom - horizonDir * 200f,
                 pointTo + horizonDir * 200f,
-                Color.black,
+                Color.white,
                 null,
-                2f);
+                4f);
         }
 
         protected override bool RectContainsPoint(Vector2 pos)
