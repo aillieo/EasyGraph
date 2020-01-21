@@ -25,6 +25,8 @@ namespace AillieoUtils.EasyGraph
 
         public static readonly Vector2 CanvasScaleRange = new Vector2(0.2f, 5f);
 
+        public readonly OperationState operation = new OperationState();
+
         // SortedDictionary 不能逆序遍历
         private readonly Dictionary<int, List<CanvasElement>> managedElements = new Dictionary<int, List<CanvasElement>>();
         private readonly List<int> managedLayers = new List<int>();
@@ -101,14 +103,14 @@ namespace AillieoUtils.EasyGraph
         {
             if(evt.button == 0)
             {
-                SelectUtils.currentSelected = null;
+                operation.selection.Clear();
                 return true;
             }
             else
             {
-                if(ConnectUtils.currentBuilder.IsBuilding)
+                if(operation.connection.IsBuilding)
                 {
-                    ConnectUtils.currentBuilder.Abandon();
+                    operation.connection.Abandon();
                     return true;
                 }
             }

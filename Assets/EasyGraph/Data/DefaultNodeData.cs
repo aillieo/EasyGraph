@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class DefaultNodeData: INodeData
+    public class DefaultNodeData
     {
         public string name = "defaultNodeData";
     }

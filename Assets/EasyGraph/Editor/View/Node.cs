@@ -34,7 +34,7 @@ namespace AillieoUtils.EasyGraph
         protected override void OnDraw()
         {
             Rect position = new Rect(Position, Size).Offset(canvas.Offset);
-            if (this == SelectUtils.currentSelected)
+            if (canvas.operation.selection.HasSelected(this))
             {
                 GUIUtils.PushGUIColor(Color.blue);
                 GUI.Box(new Rect(position).Scale(1.1f, position.center), GUIContent.none, new GUIStyle("box"));
@@ -65,8 +65,8 @@ namespace AillieoUtils.EasyGraph
         protected override bool OnContextClick(Event evt)
         {
             GenericMenu genericMenu = new GenericMenu();
-            genericMenu.AddItem(new GUIContent("Make Route"), false, () => ConnectUtils.currentBuilder.StartWith(this));
-            genericMenu.AddItem(new GUIContent("Detach Node"), false, () => ConnectUtils.RemoveAllRoutes(this));
+            genericMenu.AddItem(new GUIContent("Make Route"), false, () => canvas.operation.connection.StartWith(this));
+            genericMenu.AddItem(new GUIContent("Detach Node"), false, () => RemoveAllRoutes());
             genericMenu.AddItem(new GUIContent("Remove Node"), false, () => canvas.RemoveElement(this));
             genericMenu.ShowAsContext();
             return true;
@@ -76,13 +76,14 @@ namespace AillieoUtils.EasyGraph
         {
             if(evt.button == 0)
             {
-                if (ConnectUtils.currentBuilder.IsBuilding)
+                if (canvas.operation.connection.IsBuilding)
                 {
-                    ConnectUtils.currentBuilder.FinishWith(this);
+                    canvas.operation.connection.FinishWith(this);
                 }
-                if (SelectUtils.currentSelected != this)
+                if (!canvas.operation.selection.HasSelected(this))
                 {
-                    SelectUtils.currentSelected = this;
+                    canvas.operation.selection.Clear();
+                    canvas.operation.selection.Select(this);
                 }
                 return true;
             }
@@ -94,7 +95,17 @@ namespace AillieoUtils.EasyGraph
 
         protected override void OnRemove()
         {
-            ConnectUtils.RemoveAllRoutes(this);
+            RemoveAllRoutes();
+        }
+
+        public void RemoveAllRoutes()
+        {
+            Route[] routes = new Route[associatedRoutes.Count];
+            associatedRoutes.CopyTo(routes);
+            foreach (var r in routes)
+            {
+                canvas.RemoveElement(r);
+            }
         }
     }
 

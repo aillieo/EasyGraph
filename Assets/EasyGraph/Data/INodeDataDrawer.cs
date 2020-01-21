@@ -1,12 +1,12 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public static class SelectUtils
+    public interface INodeDataDrawer<T>
     {
-        public static Node currentSelected = null;
+        void OnGUI(Rect rect);
     }
+
 }

@@ -21,15 +21,17 @@ namespace AillieoUtils.EasyGraph
 
         protected override void OnDraw()
         {
-            Vector2 horizonDiff = Vector2.right * (nodeFrom.Position - nodeTo.Position).x;
-            Vector2 horizonDir = horizonDiff.normalized;
-            Vector2 pointFrom = new Rect(nodeFrom.Rect).Offset(canvas.Offset).center;
-            Vector2 pointTo = new Rect(nodeTo.Rect).Offset(canvas.Offset).center;
+            Vector2 horizontalDiff = Vector2.right * (nodeFrom.Position - nodeTo.Position).x;
+            Vector2 verticalDiff = Vector2.up * (nodeFrom.Position - nodeTo.Position).y;
+            Vector2 horizontalDir = horizontalDiff.normalized;
+            Vector2 verticalDir = verticalDiff.normalized;
+            Vector2 pointFrom = new Rect(nodeFrom.Rect).Offset(canvas.Offset).center - horizontalDir * nodeFrom.Rect.width / 2 - verticalDiff * 0.01f;
+            Vector2 pointTo = new Rect(nodeTo.Rect).Offset(canvas.Offset).center + horizontalDir * nodeFrom.Rect.width / 2 + verticalDiff * 0.01f;
             Handles.DrawBezier(
                 pointFrom,
                 pointTo,
-                pointFrom - horizonDir * 200f,
-                pointTo + horizonDir * 200f,
+                pointFrom - horizontalDir * 200f,
+                pointTo + horizontalDir * 200f,
                 Color.white,
                 null,
                 4f);
