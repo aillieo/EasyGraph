@@ -4,14 +4,14 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public abstract class CanvasElement : CanvasObject
+    public abstract class CanvasElement<TData> : CanvasObject<TData> where TData : INodeDataWrapper
     {
         public abstract int Layer { get; }
 
-        public Canvas canvas { get; protected set; }
+        public Canvas<TData> canvas { get; protected set; }
 
 
-        public static void Draw(CanvasElement canvasElement)
+        public static void Draw(CanvasElement<TData> canvasElement)
         {
             if (canvasElement != null)
             {
@@ -21,13 +21,13 @@ namespace AillieoUtils.EasyGraph
 
         protected abstract void OnDraw();
 
-        public static void Add(Canvas canvas, CanvasElement canvasElement)
+        public static void Add(Canvas<TData> canvas, CanvasElement<TData> canvasElement)
         {
             canvasElement.canvas = canvas;
             canvasElement.OnAdd();
         }
 
-        public static void Remove(CanvasElement canvasElement)
+        public static void Remove(CanvasElement<TData> canvasElement)
         {
             canvasElement.OnRemove();
             canvasElement.canvas = null;

@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public abstract class CanvasObject
+    public abstract class CanvasObject<TData> where TData : INodeDataWrapper
     {
 
         protected abstract bool RectContainsPoint(Vector2 pos);

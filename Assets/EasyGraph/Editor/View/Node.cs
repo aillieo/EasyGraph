@@ -5,18 +5,19 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class Node : CanvasElement
+    public class Node<TData> : CanvasElement<TData> where TData: INodeDataWrapper
     {
-        public Node(Vector2 canvasPos)
+        public Node(TData data, Vector2 canvasPos)
         {
+            this.data = data;
             this.Position = canvasPos;
         }
 
-        public readonly DefaultNodeData data = new DefaultNodeData();
+        public readonly TData data;
 
         public override int Layer => LayerDefine.Node;
 
-        public readonly HashSet<Route> associatedRoutes = new HashSet<Route>();
+        public readonly HashSet<Route<TData>> associatedRoutes = new HashSet<Route<TData>>();
 
         // canvas space
         public Vector2 Position { get; protected set; }
@@ -41,9 +42,10 @@ namespace AillieoUtils.EasyGraph
                 GUIUtils.PopGUIColor();
             }
             GUI.Box(position, $"node{this.Position}", Style);
-            GUI.Label(
-                new Rect(position.position + EditorGUIUtility.singleLineHeight * Vector2.up, new Vector2(position.width, EditorGUIUtility.singleLineHeight)),
-                data.name);
+            if(data != null)
+            {
+                data.OnGUI(position);
+            }
         }
 
         protected override bool RectContainsPoint(Vector2 pos)
@@ -100,7 +102,7 @@ namespace AillieoUtils.EasyGraph
 
         public void RemoveAllRoutes()
         {
-            Route[] routes = new Route[associatedRoutes.Count];
+            Route<TData>[] routes = new Route<TData>[associatedRoutes.Count];
             associatedRoutes.CopyTo(routes);
             foreach (var r in routes)
             {

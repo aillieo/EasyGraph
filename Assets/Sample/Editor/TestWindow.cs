@@ -2,43 +2,46 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
-using Canvas = AillieoUtils.EasyGraph.Canvas;
-using AillieoUtils;
 using AillieoUtils.EasyGraph;
+using AillieoUtils;
 
 public class TestWindow : EditorWindow
 {
-    [MenuItem("Window/TestWindow")]
+    [MenuItem("Window/{ TestWindow }")]
     private static void OpenWindow()
     {
         EditorWindow.GetWindow<TestWindow>("Easy Graph Window");
     }
 
-    private Canvas canvas = new Canvas(new Vector2(1280f, 640f));
+    private Graph<NodeData> graph = new Graph<NodeData>(new Vector2(1280f, 640f));
 
+    string testData;
 
     private void OnGUI()
     {
-        Rect viewRect = new Rect(Vector2.up * 3 * EditorGUIUtility.singleLineHeight, position.size - Vector2.up * EditorGUIUtility.singleLineHeight * 6);
+        float singleLineHeight = EditorGUIUtility.singleLineHeight;
 
-        GUI.Label(
-            new Rect(Vector2.zero, new Vector2(200, EditorGUIUtility.singleLineHeight)),
-            string.Format("Offset={0}Scale={1}", canvas.Offset, canvas.Scale));
-        if (canvas.operation.selection.SelectedCount() > 0)
+        Rect viewRect = position.OffsetY(3 * singleLineHeight).SetHeight(position.size.y - singleLineHeight * 6 - GUIUtils.titleHeight);
+
+        graph.OnGUI(viewRect);
+
+        graph.OnGUINodeDetail(viewRect.OffsetY(-2 * singleLineHeight).SetHeight(singleLineHeight).SetWidth(200));
+
+        if (GUI.Button(viewRect.OffsetY(viewRect.height).SetHeight(singleLineHeight).SetWidth(200),"Save"))
         {
-            Node node = canvas.operation.selection.FirstSelected();
-            node.data.name = GUI.TextField(
-                new Rect(Vector2.up * EditorGUIUtility.singleLineHeight, new Vector2(200, EditorGUIUtility.singleLineHeight)),
-                node.data.name);
+            string data = graph.Save();
+            testData = data;
         }
 
-        canvas.OnGUI(viewRect);
+        testData = GUI.TextArea(viewRect.OffsetY(viewRect.height + singleLineHeight).SetHeight(singleLineHeight).SetWidth(200),testData);
 
-        if (GUI.Button(
-            new Rect(viewRect.position + Vector2.up * (viewRect.size.y + EditorGUIUtility.singleLineHeight), new Vector2(200, EditorGUIUtility.singleLineHeight)),
-            "Save"))
+        if (GUI.Button(viewRect.OffsetY(viewRect.height + 2 * singleLineHeight).SetHeight(singleLineHeight).SetWidth(200),"Load"))
         {
-            Debug.Log("save");
+            Graph<NodeData> newGraph = Graph<NodeData>.Load(testData);
+            if(newGraph != null)
+            {
+                graph = newGraph;
+            }
         }
     }
 }

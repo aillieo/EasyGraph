@@ -5,17 +5,17 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class Connection
+    public class Connection<TData> where TData : INodeDataWrapper
     {
-        private Node nodeFrom;
-        private DummyRoute dummyRoute;
+        private Node<TData> nodeFrom;
+        private DummyRoute<TData> dummyRoute;
 
         public bool IsBuilding
         {
             get { return dummyRoute != null; }
         }
 
-        public Route FinishWith(Node node)
+        public Route<TData> FinishWith(Node<TData> node)
         {
             if (node == nodeFrom)
             {
@@ -24,7 +24,7 @@ namespace AillieoUtils.EasyGraph
             }
             else
             {
-                Route route = new Route(nodeFrom, node);
+                Route<TData> route = new Route<TData>(nodeFrom, node);
                 node.canvas.AddElement(route);
                 nodeFrom.associatedRoutes.Add(route);
                 node.associatedRoutes.Add(route);
@@ -38,11 +38,11 @@ namespace AillieoUtils.EasyGraph
             CleanUp();
         }
 
-        public void StartWith(Node node)
+        public void StartWith(Node<TData> node)
         {
             CleanUp();
             nodeFrom = node;
-            dummyRoute = new DummyRoute(nodeFrom);
+            dummyRoute = new DummyRoute<TData>(nodeFrom);
             node.canvas.AddElement(dummyRoute);
         }
 

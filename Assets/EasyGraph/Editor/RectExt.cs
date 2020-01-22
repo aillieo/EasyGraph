@@ -44,13 +44,13 @@ namespace AillieoUtils
             return rect;
         }
 
-        public static Rect SetHeight(this ref Rect rect, float height)
+        public static Rect SetHeight(this Rect rect, float height)
         {
             rect.height = height;
             return rect;
         }
 
-        public static Rect SetWidth(this ref Rect rect, float width)
+        public static Rect SetWidth(this Rect rect, float width)
         {
             rect.width = width;
             return rect;

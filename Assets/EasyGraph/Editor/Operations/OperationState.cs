@@ -4,11 +4,11 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class OperationState
+    public class OperationState<TData> where TData : INodeDataWrapper
     {
-        public readonly Connection connection = new Connection();
+        public readonly Connection<TData> connection = new Connection<TData>();
 
-        public readonly Selection selection = new Selection();
+        public readonly Selection<TData> selection = new Selection<TData>();
 
     }
 

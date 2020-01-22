@@ -5,15 +5,15 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class DummyRoute : CanvasElement
+    public class DummyRoute<TData> : CanvasElement<TData> where TData : INodeDataWrapper
     {
 
-        public DummyRoute(Node nodeFrom)
+        public DummyRoute(Node<TData> nodeFrom)
         {
             this.nodeFrom = nodeFrom;
         }
 
-        private Node nodeFrom;
+        private Node<TData> nodeFrom;
 
         public override int Layer => LayerDefine.DummyRoute;
 

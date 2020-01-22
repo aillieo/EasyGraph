@@ -5,11 +5,11 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class Selection
+    public class Selection<TData> where TData : INodeDataWrapper
     {
-        private readonly List<Node> currentSelected = new List<Node>();
+        private readonly List<Node<TData>> currentSelected = new List<Node<TData>>();
 
-        public int Select(Node node)
+        public int Select(Node<TData> node)
         {
             currentSelected.Clear();
             currentSelected.Add(node);
@@ -26,12 +26,12 @@ namespace AillieoUtils.EasyGraph
             return currentSelected.Count;
         }
 
-        public bool HasSelected(Node node)
+        public bool HasSelected(Node<TData> node)
         {
             return currentSelected.Contains(node);
         }
 
-        public Node FirstSelected()
+        public Node<TData> FirstSelected()
         {
             if(currentSelected.Count == 0)
             {

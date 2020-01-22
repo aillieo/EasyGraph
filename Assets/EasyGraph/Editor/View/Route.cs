@@ -5,13 +5,13 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class Route : CanvasElement
+    public class Route<TData> : CanvasElement<TData> where TData : INodeDataWrapper
     {
 
-        private readonly Node nodeFrom;
-        private readonly Node nodeTo;
+        private readonly Node<TData> nodeFrom;
+        private readonly Node<TData> nodeTo;
 
-        public Route(Node nodeFrom, Node nodeTo)
+        public Route(Node<TData> nodeFrom, Node<TData> nodeTo)
         {
             this.nodeFrom = nodeFrom;
             this.nodeTo = nodeTo;

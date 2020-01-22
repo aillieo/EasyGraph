@@ -11,25 +11,27 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class Canvas : CanvasObject
+    public class Canvas<TData> : CanvasObject<TData> where TData : INodeDataWrapper
     {
         public Canvas(Vector2 size)
         {
-            this.Size = size;
+            this.size = size;
         }
 
         public float Scale { get; private set; } = 1.0f;
         public Vector2 Offset { get; private set; } = Vector2.zero;
 
-        private readonly Vector2 Size;
+        public Vector2 Size { get => size; }
+
+        private readonly Vector2 size;
 
         public static readonly Vector2 CanvasScaleRange = new Vector2(0.2f, 5f);
 
-        public readonly OperationState operation = new OperationState();
+        public readonly OperationState<TData> operation = new OperationState<TData>();
+        private readonly NodeDataFactory<TData> factory = new NodeDataFactory<TData>();
 
-        // SortedDictionary 不能逆序遍历
-        private readonly Dictionary<int, List<CanvasElement>> managedElements = new Dictionary<int, List<CanvasElement>>();
-        private readonly List<int> managedLayers = new List<int>();
+        internal readonly Dictionary<int, List<CanvasElement<TData>>> managedElements = new Dictionary<int, List<CanvasElement<TData>>>();
+        internal readonly List<int> managedLayers = new List<int>();
 
         private Rect cachedViewRect;
 
@@ -37,27 +39,24 @@ namespace AillieoUtils.EasyGraph
         {
             cachedViewRect = viewRect;
 
-            bool eventHandled = HandleGUIEvent();
+            HandleGUIEvent();
 
-            this.Begin();
+            Begin();
 
             DrawGrids();
 
-            if (Event.current.type == EventType.Repaint)
+            foreach (var layer in managedLayers)
             {
-                foreach (var layer in managedLayers)
+                if (managedElements.TryGetValue(layer, out List<CanvasElement<TData>> elementList))
                 {
-                    if (managedElements.TryGetValue(layer, out List<CanvasElement> elementList))
+                    foreach (var ele in elementList)
                     {
-                        foreach (var ele in elementList)
-                        {
-                            CanvasElement.Draw(ele);
-                        }
+                        CanvasElement<TData>.Draw(ele);
                     }
                 }
             }
 
-            this.End();
+            End();
         }
 
         protected override bool RectContainsPoint(Vector2 pos)
@@ -79,7 +78,7 @@ namespace AillieoUtils.EasyGraph
             for (int i = managedLayers.Count - 1; i >= 0; --i)
             {
                 int layer = managedLayers[i];
-                if (managedElements.TryGetValue(layer, out List<CanvasElement> elementList))
+                if (managedElements.TryGetValue(layer, out List<CanvasElement<TData>> elementList))
                 {
                     foreach (var ele in elementList)
                     {
@@ -161,7 +160,18 @@ namespace AillieoUtils.EasyGraph
             GenericMenu genericMenu = new GenericMenu();
             Vector2 posCanvas = WindowPosToCanvasPos(evt.mousePosition);
 
-            genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node(posCanvas)));
+            if(factory.creators == null || factory.creators.Length == 0)
+            {
+                genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node<TData>(System.Activator.CreateInstance<TData>(), posCanvas)));
+            }
+            else
+            {
+                foreach (var creator in factory.creators)
+                {
+                    genericMenu.AddItem(new GUIContent("Create Node/" + creator.MenuName), false, () => this.AddElement(new Node<TData>(creator.Create(), posCanvas)));
+                }
+            }
+
             genericMenu.AddItem(new GUIContent("Reset"), false, () => { Scale = 1; Offset = Vector2.zero; });
             genericMenu.AddItem(new GUIContent("Fit All"), false, FitAllNodes);
 
@@ -236,28 +246,28 @@ namespace AillieoUtils.EasyGraph
             return rect;
         }
 
-        public void AddElement(CanvasElement canvasElement)
+        public void AddElement(CanvasElement<TData> canvasElement)
         {
             int layer = canvasElement.Layer;
-            List<CanvasElement> elementList = null;
+            List<CanvasElement<TData>> elementList = null;
             if (!managedElements.TryGetValue(layer, out elementList))
             {
                 managedLayers.Add(layer);
                 managedLayers.Sort();
-                elementList = new List<CanvasElement>();
+                elementList = new List<CanvasElement<TData>>();
                 managedElements.Add(layer, elementList);
             }
-            CanvasElement.Add(this, canvasElement);
+            CanvasElement<TData>.Add(this, canvasElement);
             elementList.Add(canvasElement);
         }
 
-        public void RemoveElement(CanvasElement canvasElement)
+        public void RemoveElement(CanvasElement<TData> canvasElement)
         {
             int layer = canvasElement.Layer;
-            if (managedElements.TryGetValue(layer, out List<CanvasElement> elementList))
+            if (managedElements.TryGetValue(layer, out List<CanvasElement<TData>> elementList))
             {
                 elementList.Remove(canvasElement);
-                CanvasElement.Remove(canvasElement);
+                CanvasElement<TData>.Remove(canvasElement);
             }
         }
 
@@ -265,14 +275,14 @@ namespace AillieoUtils.EasyGraph
         private void FitAllNodes()
         {
             Rect rect = new Rect(Size/2 , Vector2.zero);
-            List<CanvasElement> elementList;
+            List<CanvasElement<TData>> elementList;
             if (managedElements.TryGetValue(LayerDefine.Node,out elementList))
             {
                 if (elementList.Count > 0)
                 {
                     foreach (var ele in elementList)
                     {
-                        Node node = ele as Node;
+                        Node<TData> node = ele as Node<TData>;
                         if (node != null)
                         {
                             rect.Encapsulate(node.Rect);
@@ -281,6 +291,9 @@ namespace AillieoUtils.EasyGraph
                 }
             }
 
+            Scale = cachedViewRect.width / rect.width * 0.9f;
+            Scale = Mathf.Min(Scale, 1);
+            Scale = Mathf.Clamp(Scale, CanvasScaleRange.x, CanvasScaleRange.y);
             Offset = (- rect.center + cachedViewRect.size / 2 / Scale);
 
             CheckBounds();
