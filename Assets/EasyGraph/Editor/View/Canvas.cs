@@ -275,6 +275,7 @@ namespace AillieoUtils.EasyGraph
         private void FitAllNodes()
         {
             Rect rect = new Rect(Size/2 , Vector2.zero);
+
             List<CanvasElement<TData>> elementList;
             if (managedElements.TryGetValue(LayerDefine.Node,out elementList))
             {
@@ -291,7 +292,8 @@ namespace AillieoUtils.EasyGraph
                 }
             }
 
-            Scale = cachedViewRect.width / rect.width * 0.9f;
+            Scale = Mathf.Min(cachedViewRect.width / rect.width, cachedViewRect.height / rect.height);
+            Scale *= 0.9f;
             Scale = Mathf.Min(Scale, 1);
             Scale = Mathf.Clamp(Scale, CanvasScaleRange.x, CanvasScaleRange.y);
             Offset = (- rect.center + cachedViewRect.size / 2 / Scale);

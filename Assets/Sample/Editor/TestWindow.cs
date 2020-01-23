@@ -21,7 +21,10 @@ public class TestWindow : EditorWindow
     {
         float singleLineHeight = EditorGUIUtility.singleLineHeight;
 
-        Rect viewRect = position.OffsetY(3 * singleLineHeight).SetHeight(position.size.y - singleLineHeight * 6 - GUIUtils.titleHeight);
+        Rect pos = position;
+        pos.position = Vector2.zero;
+
+        Rect viewRect = pos.OffsetY(3 * singleLineHeight).SetHeight(pos.size.y - singleLineHeight * 6 - GUIUtils.titleHeight);
 
         graph.OnGUI(viewRect);
 

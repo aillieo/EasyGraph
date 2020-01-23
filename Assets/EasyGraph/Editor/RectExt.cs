@@ -58,18 +58,18 @@ namespace AillieoUtils
 
         public static void Encapsulate(this ref Rect rect, Vector2 point)
         {
-            rect.x = Mathf.Min(rect.min.x,point.x);
-            rect.y = Mathf.Min(rect.min.y,point.y);
-            rect.width = Mathf.Max(rect.width, point.x - rect.x);
-            rect.height = Mathf.Max(rect.height, point.y - rect.y);
+            Vector2 min = Vector2.Min(rect.position, point);
+            Vector2 max = Vector2.Max(rect.max, point);
+            rect.position = min;
+            rect.size = max - min;
         }
 
         public static void Encapsulate(this ref Rect rect, Rect bounds)
         {
-            rect.x = Mathf.Min(rect.min.x, bounds.x);
-            rect.y = Mathf.Min(rect.min.y, bounds.y);
-            rect.width = Mathf.Max(rect.width, bounds.max.x - rect.x);
-            rect.height = Mathf.Max(rect.height, bounds.max.y - rect.y);
+            Vector2 min = Vector2.Min(rect.position, bounds.position);
+            Vector2 max = Vector2.Max(rect.max, bounds.max);
+            rect.position = min;
+            rect.size = max - min;
         }
 
     }
