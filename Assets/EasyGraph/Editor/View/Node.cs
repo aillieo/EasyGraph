@@ -17,7 +17,7 @@ namespace AillieoUtils.EasyGraph
 
         public override int Layer => LayerDefine.Node;
 
-        public readonly HashSet<Route<TData>> associatedRoutes = new HashSet<Route<TData>>();
+        internal readonly HashSet<Route<TData>> associatedRoutes = new HashSet<Route<TData>>();
 
         // canvas space
         public Vector2 Position { get; protected set; }

@@ -8,13 +8,21 @@ namespace AillieoUtils.EasyGraph
 {
     public class NodeDataFactory<TData> where TData : INodeDataWrapper
     {
-        public readonly INodeDataCreator<TData>[] creators;
-
-        public NodeDataFactory()
+        public INodeDataCreator<TData>[] Creators
         {
-            var creatorTypes = System.AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(INodeDataCreator<TData>)) && !t.IsAbstract)).ToArray();
-            creators = creatorTypes.Select(t => Activator.CreateInstance(t) as INodeDataCreator<TData>).ToArray();
+            get
+            {
+                if (creators == null)
+                {
+                    var creatorTypes = System.AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(INodeDataCreator<TData>)) && !t.IsAbstract)).ToArray();
+                    creators = creatorTypes.Select(t => Activator.CreateInstance(t) as INodeDataCreator<TData>).ToArray();
+                }
+                return creators;
+            }
         }
+
+        private static INodeDataCreator<TData>[] creators = null;
+
     }
 
 }
