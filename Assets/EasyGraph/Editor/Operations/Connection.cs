@@ -26,8 +26,6 @@ namespace AillieoUtils.EasyGraph
             {
                 Route<TData> route = new Route<TData>(nodeFrom, node);
                 node.canvas.AddElement(route);
-                nodeFrom.associatedRoutes.Add(route);
-                node.associatedRoutes.Add(route);
                 CleanUp();
                 return route;
             }

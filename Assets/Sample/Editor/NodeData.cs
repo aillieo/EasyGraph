@@ -6,8 +6,19 @@ using UnityEditor;
 
 public class NodeData : INodeDataWrapper
 {
+    public NodeData(StringAndInt stringAndInt)
+    {
+        this.data = stringAndInt;
+    }
 
-    public readonly StringAndInt data = new StringAndInt();
+    public NodeData()
+    {
+        this.data = new StringAndInt();
+    }
+
+    public readonly StringAndInt data;
+
+    public Vector2 Size => new Vector2(150,80);
 
     public void OnGUI(Rect rect)
     {
@@ -22,15 +33,4 @@ public class NodeData : INodeDataWrapper
         new Rect(rect.position + EditorGUIUtility.singleLineHeight * Vector2.up, new Vector2(rect.width, EditorGUIUtility.singleLineHeight)),
         data.strData);
     }
-
-    public string OnSave()
-    {
-        return this.data.strData;
-    }
-
-    public void OnLoad(string data)
-    {
-        this.data.strData = data;
-    }
-
 }

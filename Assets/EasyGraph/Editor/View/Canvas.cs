@@ -68,18 +68,22 @@ namespace AillieoUtils.EasyGraph
         {
             Event current = Event.current;
 
-            bool handled = false;
-
             if (current.isMouse && !cachedViewRect.Contains(current.mousePosition))
             {
                 return false;
             }
+
+            bool handled = false;
 
             for (int i = managedLayers.Count - 1; i >= 0; --i)
             {
                 int layer = managedLayers[i];
                 if (managedElements.TryGetValue(layer, out List<CanvasElement<TData>> elementList))
                 {
+                    if (handled)
+                    {
+                        break;
+                    }
                     foreach (var ele in elementList)
                     {
                         handled = ele.HandleGUIEvent(current);

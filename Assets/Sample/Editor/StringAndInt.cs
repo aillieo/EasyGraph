@@ -1,3 +1,4 @@
+[System.Serializable]
 public class StringAndInt
 {
     public string strData = "strData";

@@ -21,31 +21,28 @@ namespace AillieoUtils.EasyGraph
 
         // canvas space
         public Vector2 Position { get; protected set; }
-        public virtual Vector2 Size { get; protected set; } = new Vector2(150, 80);
+
         public Rect Rect
         {
             get
             {
-                return new Rect(Position, Size);
+                return new Rect(Position, data.Size);
             } 
         }
-
-        protected virtual GUIStyle Style => new GUIStyle("window");
-
+        
         protected override void OnDraw()
         {
-            Rect position = new Rect(Position, Size).Offset(canvas.Offset);
+            Rect position = new Rect(Position, data.Size).Offset(canvas.Offset);
             if (canvas.operation.selection.HasSelected(this))
             {
                 GUIUtils.PushGUIColor(Color.blue);
                 GUI.Box(new Rect(position).Scale(1.1f, position.center), GUIContent.none, new GUIStyle("box"));
                 GUIUtils.PopGUIColor();
             }
-            GUI.Box(position, $"node{this.Position}", Style);
-            if(data != null)
-            {
-                data.OnGUI(position);
-            }
+            GUI.Box(position, $"node{this.Position}", new GUIStyle("window"));
+
+            data.OnGUI(position);
+
         }
 
         protected override bool RectContainsPoint(Vector2 pos)

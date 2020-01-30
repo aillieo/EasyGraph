@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ac3b03f918834bd89b3308eaeff7a37, type: 3}
+  m_Name: TestGraphAsset
+  m_EditorClassIdentifier: 
+  canvasSize: {x: 1280, y: 640}
+  nodeData:
+  - strData: Hello
+    intData: 0
+  - strData: World
+    intData: 0
+  - strData: Hello
+    intData: 0
+  - strData: World
+    intData: 0
+  nodePositions:
+  - {x: 191, y: 75}
+  - {x: 592, y: 289}
+  - {x: 193, y: 272}
+  - {x: 588, y: 57}
+  routes: 00000000010000000200000003000000

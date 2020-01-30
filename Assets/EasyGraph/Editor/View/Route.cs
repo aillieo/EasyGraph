@@ -43,7 +43,16 @@ namespace AillieoUtils.EasyGraph
         }
 
         protected override void OnAdd()
-        { }
+        {
+            if(!this.nodeFrom.associatedRoutes.Contains(this))
+            {
+                this.nodeFrom.associatedRoutes.Add(this);
+            }
+            if (!this.nodeTo.associatedRoutes.Contains(this))
+            {
+                this.nodeTo.associatedRoutes.Add(this);
+            }
+        }
 
         protected override void OnRemove()
         {

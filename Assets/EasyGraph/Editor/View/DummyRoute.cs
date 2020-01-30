@@ -20,9 +20,10 @@ namespace AillieoUtils.EasyGraph
         protected override void OnDraw()
         {
             Vector2 mousePos = Event.current.mousePosition;
-            Vector2 horizonDiff = Vector2.right * (nodeFrom.Position - mousePos).x;
+            Vector2 fromCenter = nodeFrom.Rect.Offset(canvas.Offset).center;
+            Vector2 horizonDiff = Vector2.right * (fromCenter - mousePos).x;
             Vector2 horizonDir = horizonDiff.normalized;
-            Vector2 pointFrom = new Rect(nodeFrom.Rect).Offset(canvas.Offset).center - horizonDir * nodeFrom.Rect.width / 2;
+            Vector2 pointFrom = fromCenter - horizonDir * nodeFrom.Rect.width / 2;
             Handles.DrawBezier(
                 pointFrom,
                 mousePos,

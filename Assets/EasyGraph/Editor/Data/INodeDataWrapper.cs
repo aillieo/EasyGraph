@@ -10,12 +10,7 @@ namespace AillieoUtils.EasyGraph
 
         void OnDetailGUI(Rect rect);
 
-        string OnSave();
-
-        void OnLoad(string data);
-
-
-
+        Vector2 Size { get; }
     }
 
 }
