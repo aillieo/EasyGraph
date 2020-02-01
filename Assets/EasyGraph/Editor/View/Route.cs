@@ -8,8 +8,8 @@ namespace AillieoUtils.EasyGraph
     public class Route<TData> : CanvasElement<TData> where TData : INodeDataWrapper
     {
 
-        internal readonly Node<TData> nodeFrom;
-        internal readonly Node<TData> nodeTo;
+        public readonly Node<TData> nodeFrom;
+        public readonly Node<TData> nodeTo;
 
         public Route(Node<TData> nodeFrom, Node<TData> nodeTo)
         {

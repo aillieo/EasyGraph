@@ -39,10 +39,10 @@ namespace AillieoUtils.EasyGraph
                 GUI.Box(new Rect(position).Scale(1.1f, position.center), GUIContent.none, new GUIStyle("box"));
                 GUIUtils.PopGUIColor();
             }
-            GUI.Box(position, $"node{this.Position}", new GUIStyle("window"));
-
-            data.OnGUI(position);
-
+            // GUI.Box(position, $"node{this.Position}", new GUIStyle("window"));
+            GUILayout.BeginArea(position);
+            data.OnGUI(new Rect(Vector2.zero,position.size));
+            GUILayout.EndArea();
         }
 
         protected override bool RectContainsPoint(Vector2 pos)

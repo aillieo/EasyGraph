@@ -25,7 +25,7 @@ namespace AillieoUtils.EasyGraph
 
         private readonly Vector2 size;
 
-        public static readonly Vector2 CanvasScaleRange = new Vector2(0.2f, 5f);
+        public static readonly Vector2 CanvasScaleRange = new Vector2(0.2f, 2f);
 
         public readonly OperationState<TData> operation = new OperationState<TData>();
         private readonly NodeDataFactory<TData> factory = new NodeDataFactory<TData>();
@@ -218,10 +218,20 @@ namespace AillieoUtils.EasyGraph
             GUI.BeginGroup(new Rect(0.0f, GUIUtils.titleHeight, Screen.width, Screen.height));
         }
 
+        private Texture2D gridTex = null;
 
         private void DrawGrids()
         {
-            Texture2D gridTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/EasyGraph/Resources/bg1.png");
+            if(gridTex == null)
+            {
+                gridTex = new Texture2D(1, 1);
+                gridTex.LoadImage(System.Convert.FromBase64String(Resources.gridTexture));
+                gridTex.filterMode = FilterMode.Bilinear;
+                gridTex.Apply();
+            }
+
+            //Texture2D gridTex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/EasyGraph/Resources/bg1.png");
+
             Vector2 tiles = new Vector2(
                 Size.x / gridTex.width,
                 Size.y / gridTex.height);

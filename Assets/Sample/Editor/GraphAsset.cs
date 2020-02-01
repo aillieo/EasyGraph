@@ -17,50 +17,60 @@ public class GraphAsset : ScriptableObject, IGraphAsset<NodeData>
     [SerializeField]
     int[] routes;
 
-    public bool AssetToGraph(out Vector2 canvasSize, out IList<Node<NodeData>> nodes, out IList<Route<NodeData>> routes)
+    public bool AssetToGraph(out Vector2 canvasSize, out IList<Node<NodeData>> nodesLoaded, out IList<Route<NodeData>> routesLoaded)
     {
         canvasSize = this.canvasSize;
-        nodes = new List<Node<NodeData>>();
-        routes = new List<Route<NodeData>>();
+        nodesLoaded = new List<Node<NodeData>>();
+        routesLoaded = new List<Route<NodeData>>();
 
         for(int i = 0;i<this.nodeData.Length; ++i)
         {
             NodeData data = new NodeData(nodeData[i]);
             Node<NodeData> node = new Node<NodeData>(data, this.nodePositions[i]);
-            nodes.Add(node);
+            nodesLoaded.Add(node);
         }
 
         for(int i = 0; i < this.routes.Length; i+=2)
         {
             Route<NodeData> route = new Route<NodeData>(
-            nodes[this.routes[i]], 
-            nodes[this.routes[i+1]]);
-            routes.Add(route);
+            nodesLoaded[this.routes[i]],
+            nodesLoaded[this.routes[i+1]]);
+            routesLoaded.Add(route);
         }
 
         return true;
     }
 
-    public bool GraphToAsset(Vector2 canvasSize, IList<Node<NodeData>> nodes, IList<Route<NodeData>> routes)
+    public bool GraphToAsset(Vector2 canvasSize, IList<Node<NodeData>> nodesToSave, IList<Route<NodeData>> routesToSave)
     {
         this.canvasSize = canvasSize;
 
-        Dictionary<Node<NodeData>, int> nodeIndex = new Dictionary<Node<NodeData>, int>();
-        nodeData = new StringAndInt[nodes.Count];
-        nodePositions = new Vector2[nodes.Count];
-        this.routes = new int[2 * routes.Count];
-
-        for(int i = 0;  i < nodes.Count; i ++)
+        if(nodesToSave == null)
         {
-            var node = nodes[i];
+            return true;
+        }
+
+        if(routesToSave == null)
+        {
+            routesToSave = new List<Route<NodeData>>();
+        }
+
+        Dictionary<Node<NodeData>, int> nodeIndex = new Dictionary<Node<NodeData>, int>();
+        nodeData = new StringAndInt[nodesToSave.Count];
+        nodePositions = new Vector2[nodesToSave.Count];
+        this.routes = new int[2 * routesToSave.Count];
+
+        for(int i = 0;  i < nodesToSave.Count; i ++)
+        {
+            var node = nodesToSave[i];
             this.nodeData[i] = node.data.data;
             this.nodePositions[i] = node.Position;
             nodeIndex[node] = i;
         }
 
-        for (int i = 0; i < routes.Count; i++)
+        for (int i = 0; i < routesToSave.Count; i++)
         {
-            var route = routes[i];
+            var route = routesToSave[i];
             this.routes[i * 2] = nodeIndex[route.nodeFrom];
             this.routes[i * 2 + 1] = nodeIndex[route.nodeTo];
         }

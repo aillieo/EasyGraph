@@ -22,6 +22,7 @@ public class NodeData : INodeDataWrapper
 
     public void OnGUI(Rect rect)
     {
+        GUI.Box(rect, GUIContent.none, new GUIStyle("window"));
         GUI.Label(
         new Rect(rect.position + EditorGUIUtility.singleLineHeight * Vector2.up, new Vector2(rect.width, EditorGUIUtility.singleLineHeight)),
         data.strData);
@@ -30,7 +31,7 @@ public class NodeData : INodeDataWrapper
     public void OnDetailGUI(Rect rect)
     {
         data.strData = GUI.TextField(
-        new Rect(rect.position + EditorGUIUtility.singleLineHeight * Vector2.up, new Vector2(rect.width, EditorGUIUtility.singleLineHeight)),
+        new Rect(rect.position, new Vector2(rect.width, EditorGUIUtility.singleLineHeight)),
         data.strData);
     }
 }

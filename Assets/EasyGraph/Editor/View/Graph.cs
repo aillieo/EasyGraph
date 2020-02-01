@@ -27,7 +27,9 @@ namespace AillieoUtils.EasyGraph
                 Node<TData> node = canvas.operation.selection.FirstSelected();
                 if(node.data != null)
                 {
-                    node.data.OnDetailGUI(viewRect);
+                    GUILayout.BeginArea(viewRect);
+                    node.data.OnDetailGUI(new Rect(Vector2.zero,viewRect.size));
+                    GUILayout.EndArea();
                 }
             }
         }
@@ -69,13 +71,19 @@ namespace AillieoUtils.EasyGraph
                 if (serializedData.AssetToGraph(out size, out nodes, out routes))
                 {
                     graph = new Graph<TData, TAsset>(size);
-                    foreach (var n in nodes)
+                    if(nodes != null)
                     {
-                        graph.canvas.AddElement(n);
+                        foreach (var n in nodes)
+                        {
+                            graph.canvas.AddElement(n);
+                        }
                     }
-                    foreach (var r in routes)
+                    if(routes != null)
                     {
-                        graph.canvas.AddElement(r);
+                        foreach (var r in routes)
+                        {
+                            graph.canvas.AddElement(r);
+                        }
                     }
                 }
             }
