@@ -25,15 +25,17 @@ namespace AillieoUtils.EasyGraph
             Vector2 verticalDiff = Vector2.up * (nodeFrom.Position - nodeTo.Position).y;
             Vector2 horizontalDir = horizontalDiff.normalized;
             Vector2 verticalDir = verticalDiff.normalized;
-            Vector2 pointFrom = new Rect(nodeFrom.Rect).Offset(canvas.Offset).center - horizontalDir * nodeFrom.Rect.width / 2 - verticalDiff * 0.01f;
-            Vector2 pointTo = new Rect(nodeTo.Rect).Offset(canvas.Offset).center + horizontalDir * nodeFrom.Rect.width / 2 + verticalDiff * 0.01f;
-            Handles.DrawBezier(
-                pointFrom,
-                pointTo,
-                pointFrom - horizontalDir * 200f,
-                pointTo + horizontalDir * 200f,
+            Vector2 point0 = new Rect(nodeFrom.Rect).Offset(canvas.Offset).center;
+            Vector2 point1 = point0 - horizontalDir * nodeFrom.Rect.width;
+            Vector2 point3 = new Rect(nodeTo.Rect).Offset(canvas.Offset).center;
+            Vector2 point2 = point3 + horizontalDir * nodeFrom.Rect.width;
+
+            GUIUtils.DrawBezier(
+                point0,
+                point1,
+                point2,
+                point3,
                 Color.white,
-                null,
                 4f);
         }
 

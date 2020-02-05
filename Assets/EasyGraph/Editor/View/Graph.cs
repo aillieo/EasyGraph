@@ -20,9 +20,10 @@ namespace AillieoUtils.EasyGraph
             canvas.OnGUI(viewRect);
         }
 
-        public void OnGUINodeDetail(Rect viewRect)
+        public bool OnGUINodeDetail(Rect viewRect)
         {
-            if(canvas.operation.selection.SelectedCount() > 0)
+            bool hasSelected = (canvas.operation.selection.SelectedCount() > 0);
+            if(hasSelected)
             {
                 Node<TData> node = canvas.operation.selection.FirstSelected();
                 if(node.data != null)
@@ -32,6 +33,7 @@ namespace AillieoUtils.EasyGraph
                     GUILayout.EndArea();
                 }
             }
+            return hasSelected;
         }
 
         public bool Save(TAsset serializedData)

@@ -77,15 +77,16 @@ namespace AillieoUtils.EasyGraph
 
             for (int i = managedLayers.Count - 1; i >= 0; --i)
             {
+                if (handled)
+                {
+                    break;
+                }
                 int layer = managedLayers[i];
                 if (managedElements.TryGetValue(layer, out List<CanvasElement<TData>> elementList))
                 {
-                    if (handled)
+                    for (int j = elementList.Count - 1; j >=0 ; -- j)
                     {
-                        break;
-                    }
-                    foreach (var ele in elementList)
-                    {
+                        CanvasElement<TData> ele = elementList[j];
                         handled = ele.HandleGUIEvent(current);
                         if (handled)
                         {
