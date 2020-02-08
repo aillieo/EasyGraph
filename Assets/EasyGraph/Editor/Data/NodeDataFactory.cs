@@ -6,22 +6,27 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class NodeDataFactory<TData> where TData : INodeDataWrapper
+    public class NodeDataFactory<TNodeData,TRouteData>
+        where TNodeData : INodeDataWrapper
+        where TRouteData : IRouteDataWrapper
     {
-        public INodeDataCreator<TData>[] Creators
+        public INodeDataCreator<TNodeData>[] Creators
         {
             get
             {
                 if (creators == null)
                 {
-                    var creatorTypes = System.AppDomain.CurrentDomain.GetAssemblies().SelectMany(a => a.GetTypes().Where(t => t.GetInterfaces().Contains(typeof(INodeDataCreator<TData>)) && !t.IsAbstract)).ToArray();
-                    creators = creatorTypes.Select(t => Activator.CreateInstance(t) as INodeDataCreator<TData>).ToArray();
+                    var creatorTypes = System.AppDomain.CurrentDomain.GetAssemblies()
+                        .SelectMany(a => a.GetTypes()
+                            .Where(t => t.GetInterfaces().Contains(typeof(INodeDataCreator<TNodeData>))
+                                        && !t.IsAbstract)).ToArray();
+                    creators = creatorTypes.Select(t => Activator.CreateInstance(t) as INodeDataCreator<TNodeData>).ToArray();
                 }
                 return creators;
             }
         }
 
-        private static INodeDataCreator<TData>[] creators = null;
+        private static INodeDataCreator<TNodeData>[] creators = null;
 
     }
 

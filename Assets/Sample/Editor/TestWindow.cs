@@ -13,7 +13,8 @@ public class TestWindow : EditorWindow
         EditorWindow.GetWindow<TestWindow>("Easy Graph Window");
     }
 
-    private Graph<NodeData,GraphAsset> graph = new Graph<NodeData, GraphAsset>(new Vector2(1280f, 640f));
+    // private Graph<GraphAsset,NodeData> graph = new Graph<GraphAsset, NodeData>(new Vector2(1280f, 640f));
+    private Graph<GraphAsset,NodeData,RouteData> graph = new Graph<GraphAsset, NodeData, RouteData>(new Vector2(1280f, 640f));
 
     readonly string filePath = "Assets/Sample/TestGraphAsset.asset";
 
@@ -28,7 +29,7 @@ public class TestWindow : EditorWindow
 
         graph.OnGUI(viewRect);
 
-        graph.OnGUINodeDetail(viewRect.OffsetY(-2 * singleLineHeight).SetHeight(singleLineHeight).SetWidth(200));
+        graph.OnGUIDetail(viewRect.OffsetY(-2 * singleLineHeight).SetHeight(singleLineHeight).SetWidth(200));
 
         if (GUI.Button(viewRect.OffsetY(viewRect.height).SetHeight(singleLineHeight).SetWidth(200),"Save"))
         {
@@ -46,8 +47,8 @@ public class TestWindow : EditorWindow
             GraphAsset data = AssetDatabase.LoadAssetAtPath<GraphAsset>(filePath);
             if(data != null)
             {
-                Graph<NodeData, GraphAsset> newGraph = null; 
-                if(Graph<NodeData, GraphAsset>.Load(data,out newGraph))
+                Graph<GraphAsset,NodeData,RouteData> newGraph = null;
+                if(Graph<GraphAsset,NodeData,RouteData>.Load(data,out newGraph))
                 {
                     graph = newGraph;
                 }

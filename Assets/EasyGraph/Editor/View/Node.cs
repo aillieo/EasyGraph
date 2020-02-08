@@ -5,19 +5,21 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class Node<TData> : CanvasElement<TData> where TData: INodeDataWrapper
+    public class Node<TNodeData, TRouteData> : CanvasElement<TNodeData, TRouteData>
+        where TNodeData: INodeDataWrapper
+        where TRouteData : IRouteDataWrapper,new()
     {
-        public Node(TData data, Vector2 canvasPos)
+        public Node(TNodeData data, Vector2 canvasPos)
         {
             this.data = data;
             this.Position = canvasPos;
         }
 
-        public readonly TData data;
+        public readonly TNodeData data;
 
         public override int Layer => LayerDefine.Node;
 
-        internal readonly HashSet<Route<TData>> associatedRoutes = new HashSet<Route<TData>>();
+        internal readonly HashSet<Route<TNodeData, TRouteData>> associatedRoutes = new HashSet<Route<TNodeData, TRouteData>>();
 
         // canvas space
         public Vector2 Position { get; protected set; }
@@ -27,9 +29,9 @@ namespace AillieoUtils.EasyGraph
             get
             {
                 return new Rect(Position, data.Size);
-            } 
+            }
         }
-        
+
         protected override void OnDraw()
         {
             Rect position = new Rect(Position, data.Size).Offset(canvas.Offset);
@@ -65,7 +67,7 @@ namespace AillieoUtils.EasyGraph
         {
             GenericMenu genericMenu = new GenericMenu();
             genericMenu.AddItem(new GUIContent("Make Route"), false, () => canvas.operation.connection.StartWith(this));
-            genericMenu.AddItem(new GUIContent("Detach Node"), false, () => RemoveAllRoutes());
+            genericMenu.AddItem(new GUIContent("Remove All Routes"), false, () => RemoveAllRoutes());
             genericMenu.AddItem(new GUIContent("Remove Node"), false, () => canvas.RemoveElement(this));
             genericMenu.ShowAsContext();
             return true;
@@ -99,7 +101,7 @@ namespace AillieoUtils.EasyGraph
 
         public void RemoveAllRoutes()
         {
-            Route<TData>[] routes = new Route<TData>[associatedRoutes.Count];
+            Route<TNodeData, TRouteData>[] routes = new Route<TNodeData, TRouteData>[associatedRoutes.Count];
             associatedRoutes.CopyTo(routes);
             foreach (var r in routes)
             {

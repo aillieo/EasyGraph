@@ -5,22 +5,24 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class DummyRoute<TData> : CanvasElement<TData> where TData : INodeDataWrapper
+    public class DummyRoute<TNodeData,TRouteData> : CanvasElement<TNodeData,TRouteData>
+        where TNodeData : INodeDataWrapper
+        where TRouteData : IRouteDataWrapper,new()
     {
 
-        public DummyRoute(Node<TData> nodeFrom)
+        public DummyRoute(Node<TNodeData,TRouteData> nodeFrom)
         {
             this.nodeFrom = nodeFrom;
         }
 
-        private Node<TData> nodeFrom;
+        private Node<TNodeData,TRouteData> nodeFrom;
 
         public override int Layer => LayerDefine.DummyRoute;
 
         protected override void OnDraw()
         {
             Vector2 point3 = Event.current.mousePosition;
-            Vector2 point0 = nodeFrom.Rect.Offset(canvas.Offset).center;
+            Vector2 point0 = nodeFrom.Rect.center + canvas.Offset;
             Vector2 horizontalDiff = Vector2.right * (point0 - point3).x;
             Vector2 horizontalDir = horizontalDiff.normalized;
             Vector2 point1 = point0 - horizontalDir * nodeFrom.Rect.width / 2;

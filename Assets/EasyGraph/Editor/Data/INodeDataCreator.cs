@@ -4,9 +4,10 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public interface INodeDataCreator<TData> where TData: INodeDataWrapper
+    public interface INodeDataCreator<TNodeData>
+        where TNodeData: INodeDataWrapper
     {
-        TData Create();
+        TNodeData Create();
 
         string MenuName { get; }
     }

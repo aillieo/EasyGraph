@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using AillieoUtils.EasyGraph;
 
-public class GraphAsset : ScriptableObject, IGraphAsset<NodeData>
+public class GraphAsset : ScriptableObject, IGraphAsset<NodeData,RouteData>
 {
     [SerializeField]
     Vector2 canvasSize;
@@ -17,22 +17,22 @@ public class GraphAsset : ScriptableObject, IGraphAsset<NodeData>
     [SerializeField]
     int[] routes;
 
-    public bool AssetToGraph(out Vector2 canvasSize, out IList<Node<NodeData>> nodesLoaded, out IList<Route<NodeData>> routesLoaded)
+    public bool AssetToGraph(out Vector2 canvasSize, out IList<Node<NodeData,RouteData>> nodesLoaded, out IList<Route<NodeData,RouteData>> routesLoaded)
     {
         canvasSize = this.canvasSize;
-        nodesLoaded = new List<Node<NodeData>>();
-        routesLoaded = new List<Route<NodeData>>();
+        nodesLoaded = new List<Node<NodeData,RouteData>>();
+        routesLoaded = new List<Route<NodeData,RouteData>>();
 
         for(int i = 0;i<this.nodeData.Length; ++i)
         {
             NodeData data = new NodeData(nodeData[i]);
-            Node<NodeData> node = new Node<NodeData>(data, this.nodePositions[i]);
+            Node<NodeData,RouteData> node = new Node<NodeData,RouteData>(data, this.nodePositions[i]);
             nodesLoaded.Add(node);
         }
 
         for(int i = 0; i < this.routes.Length; i+=2)
         {
-            Route<NodeData> route = new Route<NodeData>(
+            Route<NodeData,RouteData> route = new Route<NodeData,RouteData>(
             nodesLoaded[this.routes[i]],
             nodesLoaded[this.routes[i+1]]);
             routesLoaded.Add(route);
@@ -41,7 +41,7 @@ public class GraphAsset : ScriptableObject, IGraphAsset<NodeData>
         return true;
     }
 
-    public bool GraphToAsset(Vector2 canvasSize, IList<Node<NodeData>> nodesToSave, IList<Route<NodeData>> routesToSave)
+    public bool GraphToAsset(Vector2 canvasSize, IList<Node<NodeData,RouteData>> nodesToSave, IList<Route<NodeData,RouteData>> routesToSave)
     {
         this.canvasSize = canvasSize;
 
@@ -52,10 +52,10 @@ public class GraphAsset : ScriptableObject, IGraphAsset<NodeData>
 
         if(routesToSave == null)
         {
-            routesToSave = new List<Route<NodeData>>();
+            routesToSave = new List<Route<NodeData,RouteData>>();
         }
 
-        Dictionary<Node<NodeData>, int> nodeIndex = new Dictionary<Node<NodeData>, int>();
+        Dictionary<Node<NodeData,RouteData>, int> nodeIndex = new Dictionary<Node<NodeData,RouteData>, int>();
         nodeData = new StringAndInt[nodesToSave.Count];
         nodePositions = new Vector2[nodesToSave.Count];
         this.routes = new int[2 * routesToSave.Count];

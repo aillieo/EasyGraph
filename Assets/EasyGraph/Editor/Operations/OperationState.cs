@@ -4,11 +4,13 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class OperationState<TData> where TData : INodeDataWrapper
+    public class OperationState<TNodeData,TRouteData>
+        where TNodeData : INodeDataWrapper
+        where TRouteData : IRouteDataWrapper,new()
     {
-        public readonly Connection<TData> connection = new Connection<TData>();
+        public readonly Connection<TNodeData,TRouteData> connection = new Connection<TNodeData,TRouteData>();
 
-        public readonly Selection<TData> selection = new Selection<TData>();
+        public readonly Selection<TNodeData,TRouteData> selection = new Selection<TNodeData,TRouteData>();
 
     }
 

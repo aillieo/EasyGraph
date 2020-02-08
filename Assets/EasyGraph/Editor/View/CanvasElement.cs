@@ -4,14 +4,17 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public abstract class CanvasElement<TData> : CanvasObject<TData> where TData : INodeDataWrapper
+    public abstract class CanvasElement<TNodeData, TRouteData>
+        : CanvasObject
+        where TNodeData : INodeDataWrapper
+        where TRouteData : IRouteDataWrapper,new()
     {
         public abstract int Layer { get; }
 
-        public Canvas<TData> canvas { get; protected set; }
+        public Canvas<TNodeData, TRouteData> canvas { get; protected set; }
 
 
-        public static void Draw(CanvasElement<TData> canvasElement)
+        public static void Draw(CanvasElement<TNodeData, TRouteData> canvasElement)
         {
             if (canvasElement != null)
             {
@@ -21,13 +24,13 @@ namespace AillieoUtils.EasyGraph
 
         protected abstract void OnDraw();
 
-        public static void Add(Canvas<TData> canvas, CanvasElement<TData> canvasElement)
+        public static void Add(Canvas<TNodeData, TRouteData> canvas, CanvasElement<TNodeData, TRouteData> canvasElement)
         {
             canvasElement.canvas = canvas;
             canvasElement.OnAdd();
         }
 
-        public static void Remove(CanvasElement<TData> canvasElement)
+        public static void Remove(CanvasElement<TNodeData, TRouteData> canvasElement)
         {
             canvasElement.OnRemove();
             canvasElement.canvas = null;
@@ -37,4 +40,10 @@ namespace AillieoUtils.EasyGraph
         protected abstract void OnRemove();
     }
 
+    /*
+    public abstract class CanvasElement<TNodeData>
+        : CanvasElement<TNodeData,DefaultRouteDataWrapper>
+        where TNodeData : INodeDataWrapper
+    {}
+    */
 }

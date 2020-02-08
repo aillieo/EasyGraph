@@ -5,14 +5,16 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class Selection<TData> where TData : INodeDataWrapper
+    public class Selection<TNodeData,TRouteData>
+        where TNodeData: INodeDataWrapper
+        where TRouteData : IRouteDataWrapper,new()
     {
-        private readonly List<Node<TData>> currentSelected = new List<Node<TData>>();
+        private readonly List<CanvasElement<TNodeData,TRouteData>> currentSelected = new List<CanvasElement<TNodeData,TRouteData>>();
 
-        public int Select(Node<TData> node)
+        public int Select(CanvasElement<TNodeData,TRouteData> element)
         {
             currentSelected.Clear();
-            currentSelected.Add(node);
+            currentSelected.Add(element);
             return currentSelected.Count;
         }
 
@@ -26,12 +28,12 @@ namespace AillieoUtils.EasyGraph
             return currentSelected.Count;
         }
 
-        public bool HasSelected(Node<TData> node)
+        public bool HasSelected(CanvasElement<TNodeData,TRouteData> element)
         {
-            return currentSelected.Contains(node);
+            return currentSelected.Contains(element);
         }
 
-        public Node<TData> FirstSelected()
+        public CanvasElement<TNodeData,TRouteData> FirstSelected()
         {
             if(currentSelected.Count == 0)
             {

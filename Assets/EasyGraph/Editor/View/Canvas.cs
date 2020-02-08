@@ -11,7 +11,9 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class Canvas<TData> : CanvasObject<TData> where TData : INodeDataWrapper
+    public class Canvas<TNodeData,TRouteData> : CanvasObject
+        where TNodeData : INodeDataWrapper
+        where TRouteData : IRouteDataWrapper,new()
     {
         public Canvas(Vector2 size)
         {
@@ -27,10 +29,10 @@ namespace AillieoUtils.EasyGraph
 
         public static readonly Vector2 CanvasScaleRange = new Vector2(0.2f, 2f);
 
-        public readonly OperationState<TData> operation = new OperationState<TData>();
-        private readonly NodeDataFactory<TData> factory = new NodeDataFactory<TData>();
+        public readonly OperationState<TNodeData,TRouteData> operation = new OperationState<TNodeData,TRouteData>();
+        private readonly NodeDataFactory<TNodeData,TRouteData> factory = new NodeDataFactory<TNodeData,TRouteData>();
 
-        internal readonly Dictionary<int, List<CanvasElement<TData>>> managedElements = new Dictionary<int, List<CanvasElement<TData>>>();
+        internal readonly Dictionary<int, List<CanvasElement<TNodeData,TRouteData>>> managedElements = new Dictionary<int, List<CanvasElement<TNodeData,TRouteData>>>();
         internal readonly List<int> managedLayers = new List<int>();
 
         private Rect cachedViewRect;
@@ -47,11 +49,11 @@ namespace AillieoUtils.EasyGraph
 
             foreach (var layer in managedLayers)
             {
-                if (managedElements.TryGetValue(layer, out List<CanvasElement<TData>> elementList))
+                if (managedElements.TryGetValue(layer, out List<CanvasElement<TNodeData,TRouteData>> elementList))
                 {
                     foreach (var ele in elementList)
                     {
-                        CanvasElement<TData>.Draw(ele);
+                        CanvasElement<TNodeData,TRouteData>.Draw(ele);
                     }
                 }
             }
@@ -82,11 +84,11 @@ namespace AillieoUtils.EasyGraph
                     break;
                 }
                 int layer = managedLayers[i];
-                if (managedElements.TryGetValue(layer, out List<CanvasElement<TData>> elementList))
+                if (managedElements.TryGetValue(layer, out List<CanvasElement<TNodeData,TRouteData>> elementList))
                 {
                     for (int j = elementList.Count - 1; j >=0 ; -- j)
                     {
-                        CanvasElement<TData> ele = elementList[j];
+                        CanvasElement<TNodeData,TRouteData> ele = elementList[j];
                         handled = ele.HandleGUIEvent(current);
                         if (handled)
                         {
@@ -167,13 +169,13 @@ namespace AillieoUtils.EasyGraph
 
             if(factory.Creators.Length == 0)
             {
-                genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node<TData>(System.Activator.CreateInstance<TData>(), posCanvas)));
+                genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node<TNodeData,TRouteData>(System.Activator.CreateInstance<TNodeData>(), posCanvas)));
             }
             else
             {
                 foreach (var creator in factory.Creators)
                 {
-                    genericMenu.AddItem(new GUIContent("Create Node/" + creator.MenuName), false, () => this.AddElement(new Node<TData>(creator.Create(), posCanvas)));
+                    genericMenu.AddItem(new GUIContent("Create Node/" + creator.MenuName), false, () => this.AddElement(new Node<TNodeData,TRouteData>(creator.Create(), posCanvas)));
                 }
             }
 
@@ -261,28 +263,28 @@ namespace AillieoUtils.EasyGraph
             return rect;
         }
 
-        public void AddElement(CanvasElement<TData> canvasElement)
+        public void AddElement(CanvasElement<TNodeData,TRouteData> canvasElement)
         {
             int layer = canvasElement.Layer;
-            List<CanvasElement<TData>> elementList = null;
+            List<CanvasElement<TNodeData,TRouteData>> elementList = null;
             if (!managedElements.TryGetValue(layer, out elementList))
             {
                 managedLayers.Add(layer);
                 managedLayers.Sort();
-                elementList = new List<CanvasElement<TData>>();
+                elementList = new List<CanvasElement<TNodeData,TRouteData>>();
                 managedElements.Add(layer, elementList);
             }
-            CanvasElement<TData>.Add(this, canvasElement);
+            CanvasElement<TNodeData,TRouteData>.Add(this, canvasElement);
             elementList.Add(canvasElement);
         }
 
-        public void RemoveElement(CanvasElement<TData> canvasElement)
+        public void RemoveElement(CanvasElement<TNodeData,TRouteData> canvasElement)
         {
             int layer = canvasElement.Layer;
-            if (managedElements.TryGetValue(layer, out List<CanvasElement<TData>> elementList))
+            if (managedElements.TryGetValue(layer, out List<CanvasElement<TNodeData,TRouteData>> elementList))
             {
                 elementList.Remove(canvasElement);
-                CanvasElement<TData>.Remove(canvasElement);
+                CanvasElement<TNodeData,TRouteData>.Remove(canvasElement);
             }
         }
 
@@ -291,14 +293,14 @@ namespace AillieoUtils.EasyGraph
         {
             Rect rect = new Rect(Size/2 , Vector2.zero);
 
-            List<CanvasElement<TData>> elementList;
+            List<CanvasElement<TNodeData,TRouteData>> elementList;
             if (managedElements.TryGetValue(LayerDefine.Node,out elementList))
             {
                 if (elementList.Count > 0)
                 {
                     foreach (var ele in elementList)
                     {
-                        Node<TData> node = ele as Node<TData>;
+                        Node<TNodeData,TRouteData> node = ele as Node<TNodeData,TRouteData>;
                         if (node != null)
                         {
                             rect.Encapsulate(node.Rect);
