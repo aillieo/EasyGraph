@@ -110,4 +110,11 @@ namespace AillieoUtils.EasyGraph
         }
     }
 
+    public class Node<TNodeData>
+        : Node<TNodeData, DefaultRouteDataWrapper>
+        where TNodeData : INodeDataWrapper
+    {
+        public Node(TNodeData data, Vector2 canvasPos):base(data, canvasPos)
+        {}
+    }
 }

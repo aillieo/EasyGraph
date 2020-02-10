@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using UnityEngine;
 
@@ -64,20 +66,44 @@ namespace AillieoUtils.EasyGraph
             return hasSelected;
         }
 
+        private Dictionary<Node<TNodeData,TRouteData>, int> indexByNode = new Dictionary<Node<TNodeData, TRouteData>, int>();
         public bool Save(TAsset serializedData)
         {
+            indexByNode.Clear();
             try
             {
-                IList<Node<TNodeData,TRouteData>> nodes = null;
-                IList<Route<TNodeData,TRouteData>> routes = null;
+                IList<NodeDataWithPosition<TNodeData>> nodes = new List<NodeDataWithPosition<TNodeData>>();
+                IList<RouteDataWithNodeIndex<TRouteData>> routes = new List<RouteDataWithNodeIndex<TRouteData>>();
                 if (canvas.managedElements.ContainsKey(LayerDefine.Node))
                 {
-                    nodes = canvas.managedElements[LayerDefine.Node].Select(ele => ele as Node<TNodeData,TRouteData>).ToArray();
+                    var nodesOnCanvas = canvas.managedElements[LayerDefine.Node];
+                    for (int i = 0; i < nodesOnCanvas.Count; ++i)
+                    {
+                        var node = nodesOnCanvas[i] as Node<TNodeData, TRouteData>;
+                        if (node != null)
+                        {
+                            nodes.Add(new NodeDataWithPosition<TNodeData>(node.Position, node.data));
+                            indexByNode.Add(node, i);
+                        }
+                    }
                 }
+
                 if (canvas.managedElements.ContainsKey(LayerDefine.Route))
                 {
-                    routes = canvas.managedElements[LayerDefine.Route].Select(ele => ele as Route<TNodeData,TRouteData>).ToArray();
+                    var routesOnCanvas = canvas.managedElements[LayerDefine.Route];
+                    foreach (var ele in routesOnCanvas)
+                    {
+                        var route = ele as Route<TNodeData, TRouteData>;
+                        if (route != null)
+                        {
+                            routes.Add(new RouteDataWithNodeIndex<TRouteData>(
+                                indexByNode[route.nodeFrom],
+                                indexByNode[route.nodeTo],
+                                route.data));
+                        }
+                    }
                 }
+
                 return serializedData.GraphToAsset(canvas.Size, nodes, routes);
             }
             catch (System.Exception e)
@@ -85,16 +111,17 @@ namespace AillieoUtils.EasyGraph
                 Debug.LogError("Save graph failed\n" + e);
                 return false;
             }
-
         }
 
+        private static List<Node<TNodeData, TRouteData>> nodeByIndex = new List<Node<TNodeData, TRouteData>>();
         public static bool Load(TAsset serializedData, out Graph<TAsset,TNodeData,TRouteData> graph)
         {
-            IList<Node<TNodeData,TRouteData>> nodes = null;
-            IList<Route<TNodeData,TRouteData>> routes = null;
+            IList<NodeDataWithPosition<TNodeData>> nodes = null;
+            IList<RouteDataWithNodeIndex<TRouteData>> routes = null;
             Vector2 size = Vector2.zero;
 
             graph = null;
+            nodeByIndex.Clear();
 
             try
             {
@@ -103,16 +130,21 @@ namespace AillieoUtils.EasyGraph
                     graph = new Graph<TAsset, TNodeData, TRouteData>(size);
                     if(nodes != null)
                     {
-                        foreach (var n in nodes)
+                        for (int i = 0 ; i< nodes.Count; ++ i)
                         {
-                            graph.canvas.AddElement(n);
+                            var node = new Node<TNodeData, TRouteData>(nodes[i].nodeData, nodes[i].position);
+                            graph.canvas.AddElement(node);
+                            nodeByIndex.Add(node);
                         }
                     }
                     if(routes != null)
                     {
                         foreach (var r in routes)
                         {
-                            graph.canvas.AddElement(r);
+                            graph.canvas.AddElement(new Route<TNodeData, TRouteData>(
+                                nodeByIndex[r.fromIndex],
+                                nodeByIndex[r.toIndex],
+                                r.routeData));
                         }
                     }
                 }
@@ -126,23 +158,20 @@ namespace AillieoUtils.EasyGraph
         }
     }
 
-    /*
-    public class Graph<TAsset,TNodeData> :
-        Graph<TAsset, TNodeData, DefaultRouteDataWrapper>
+    public class Graph<TAsset,TNodeData>
+        : Graph<TAsset,TNodeData,DefaultRouteDataWrapper>
         where TNodeData : INodeDataWrapper
-        where TAsset : IGraphAsset<TNodeData,IRouteDataWrapper>
+        where TAsset : IGraphAsset<TNodeData,DefaultRouteDataWrapper>
     {
-        public Graph(Vector2 size):base(size)
-        {
-        }
+        public Graph(Vector2 size) : base(size)
+        {}
 
-        public static bool Load(TAsset serializedData, out Graph<TData, TAsset> graph)
+        public static bool Load(TAsset serializedData, out Graph<TAsset,TNodeData> graph)
         {
-            Graph<TAsset,TNodeData,DefaultRouteDataWrapper> g = null;
-            bool ret = Graph<TAsset,TNodeData>.Load(serializedData, out g);
-            graph = g as Graph<TAsset,TNodeData>;
-            return ret;
+            Graph<TAsset, TNodeData, DefaultRouteDataWrapper> baseGraph = null;
+            bool success = Graph<TAsset, TNodeData, DefaultRouteDataWrapper>.Load(serializedData, out baseGraph);
+            graph = baseGraph as Graph<TAsset, TNodeData>;
+            return success;
         }
     }
-    */
 }

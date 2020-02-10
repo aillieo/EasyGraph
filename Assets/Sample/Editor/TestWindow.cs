@@ -13,7 +13,6 @@ public class TestWindow : EditorWindow
         EditorWindow.GetWindow<TestWindow>("Easy Graph Window");
     }
 
-    // private Graph<GraphAsset,NodeData> graph = new Graph<GraphAsset, NodeData>(new Vector2(1280f, 640f));
     private Graph<GraphAsset,NodeData,RouteData> graph = new Graph<GraphAsset, NodeData, RouteData>(new Vector2(1280f, 640f));
 
     readonly string filePath = "Assets/Sample/TestGraphAsset.asset";

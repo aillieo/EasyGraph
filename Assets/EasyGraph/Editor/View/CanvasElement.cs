@@ -40,10 +40,8 @@ namespace AillieoUtils.EasyGraph
         protected abstract void OnRemove();
     }
 
-    /*
     public abstract class CanvasElement<TNodeData>
         : CanvasElement<TNodeData,DefaultRouteDataWrapper>
         where TNodeData : INodeDataWrapper
     {}
-    */
 }

@@ -11,7 +11,7 @@ public class RouteData : IRouteDataWrapper
         this.data = Color.white;
     }
 
-    private Color data;
+    public Color data { get; set; }
 
     public bool Selectable => true;
 

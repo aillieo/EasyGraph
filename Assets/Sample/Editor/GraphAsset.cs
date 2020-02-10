@@ -15,33 +15,35 @@ public class GraphAsset : ScriptableObject, IGraphAsset<NodeData,RouteData>
     Vector2[] nodePositions;
 
     [SerializeField]
+    Color[] routeColors;
+
+    [SerializeField]
     int[] routes;
 
-    public bool AssetToGraph(out Vector2 canvasSize, out IList<Node<NodeData,RouteData>> nodesLoaded, out IList<Route<NodeData,RouteData>> routesLoaded)
+    public bool AssetToGraph(out Vector2 canvasSize, out IList<NodeDataWithPosition<NodeData>> nodesLoaded, out IList<RouteDataWithNodeIndex<RouteData>> routesLoaded)
     {
         canvasSize = this.canvasSize;
-        nodesLoaded = new List<Node<NodeData,RouteData>>();
-        routesLoaded = new List<Route<NodeData,RouteData>>();
+        nodesLoaded = new List<NodeDataWithPosition<NodeData>>();
+        routesLoaded = new List<RouteDataWithNodeIndex<RouteData>>();
 
         for(int i = 0;i<this.nodeData.Length; ++i)
         {
-            NodeData data = new NodeData(nodeData[i]);
-            Node<NodeData,RouteData> node = new Node<NodeData,RouteData>(data, this.nodePositions[i]);
-            nodesLoaded.Add(node);
+            NodeDataWithPosition<NodeData> data = new NodeDataWithPosition<NodeData>(nodePositions[i], new NodeData(nodeData[i]));
+            nodesLoaded.Add(data);
         }
 
-        for(int i = 0; i < this.routes.Length; i+=2)
+        for(int i = 0; i < this.routeColors.Length; ++i)
         {
-            Route<NodeData,RouteData> route = new Route<NodeData,RouteData>(
-            nodesLoaded[this.routes[i]],
-            nodesLoaded[this.routes[i+1]]);
+            RouteData data = new RouteData();
+            data.data = this.routeColors[i];
+            RouteDataWithNodeIndex<RouteData> route = new RouteDataWithNodeIndex<RouteData>(routes[i * 2],routes[i * 2 + 1], data);
             routesLoaded.Add(route);
         }
 
         return true;
     }
 
-    public bool GraphToAsset(Vector2 canvasSize, IList<Node<NodeData,RouteData>> nodesToSave, IList<Route<NodeData,RouteData>> routesToSave)
+    public bool GraphToAsset(Vector2 canvasSize, IList<NodeDataWithPosition<NodeData>> nodesToSave, IList<RouteDataWithNodeIndex<RouteData>> routesToSave)
     {
         this.canvasSize = canvasSize;
 
@@ -52,27 +54,27 @@ public class GraphAsset : ScriptableObject, IGraphAsset<NodeData,RouteData>
 
         if(routesToSave == null)
         {
-            routesToSave = new List<Route<NodeData,RouteData>>();
+            routesToSave = new List<RouteDataWithNodeIndex<RouteData>>();
         }
 
-        Dictionary<Node<NodeData,RouteData>, int> nodeIndex = new Dictionary<Node<NodeData,RouteData>, int>();
         nodeData = new StringAndInt[nodesToSave.Count];
         nodePositions = new Vector2[nodesToSave.Count];
         this.routes = new int[2 * routesToSave.Count];
+        this.routeColors = new Color[routesToSave.Count];
 
-        for(int i = 0;  i < nodesToSave.Count; i ++)
+        for(int i = 0; i < nodesToSave.Count; i ++)
         {
             var node = nodesToSave[i];
-            this.nodeData[i] = node.data.data;
-            this.nodePositions[i] = node.Position;
-            nodeIndex[node] = i;
+            this.nodeData[i] = node.nodeData.data;
+            this.nodePositions[i] = node.position;
         }
 
         for (int i = 0; i < routesToSave.Count; i++)
         {
             var route = routesToSave[i];
-            this.routes[i * 2] = nodeIndex[route.nodeFrom];
-            this.routes[i * 2 + 1] = nodeIndex[route.nodeTo];
+            this.routeColors[i] = route.routeData.data;
+            this.routes[i * 2] = route.fromIndex;
+            this.routes[i * 2 + 1] = route.toIndex;
         }
         return true;
     }

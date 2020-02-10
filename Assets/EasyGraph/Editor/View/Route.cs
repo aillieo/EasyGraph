@@ -15,12 +15,16 @@ namespace AillieoUtils.EasyGraph
 
         public readonly TRouteData data;
 
-        public Route(Node<TNodeData, TRouteData> nodeFrom, Node<TNodeData, TRouteData> nodeTo)
+        public Route(Node<TNodeData, TRouteData> nodeFrom, Node<TNodeData, TRouteData> nodeTo, TRouteData data)
         {
-            this.data = new TRouteData();
+            this.data = data;
             this.nodeFrom = nodeFrom;
             this.nodeTo = nodeTo;
         }
+
+        public Route(Node<TNodeData, TRouteData> nodeFrom, Node<TNodeData, TRouteData> nodeTo)
+            :this(nodeFrom,nodeTo,new TRouteData())
+        {}
 
         public override int Layer => LayerDefine.Route;
 
@@ -126,6 +130,14 @@ namespace AillieoUtils.EasyGraph
                 nodeTo.associatedRoutes.Remove(this);
             }
         }
+    }
+
+    public class Route<TNodeData>
+        : Route<TNodeData, DefaultRouteDataWrapper>
+        where TNodeData : INodeDataWrapper
+    {
+        public Route(Node<TNodeData> nodeFrom, Node<TNodeData> nodeTo):base(nodeFrom, nodeTo)
+        {}
     }
 
 }

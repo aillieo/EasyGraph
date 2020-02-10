@@ -318,4 +318,12 @@ namespace AillieoUtils.EasyGraph
             CheckBounds();
         }
     }
+
+    public class Canvas<TNodeData>
+        : Canvas<TNodeData, DefaultRouteDataWrapper>
+        where TNodeData : INodeDataWrapper
+    {
+        public Canvas(Vector2 size):base(size)
+        {}
+    }
 }
