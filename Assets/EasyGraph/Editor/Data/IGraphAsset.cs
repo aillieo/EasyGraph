@@ -17,7 +17,15 @@ namespace AillieoUtils.EasyGraph
             out IList<RouteDataWithNodeIndex<TRouteData>> routesLoaded);
     }
 
-    public interface IGraphAsset<TNodeData> : IGraphAsset<TNodeData,DefaultRouteDataWrapper>
+    public interface IGraphAsset<TNodeData>
         where TNodeData : INodeDataWrapper
-    {}
+    {
+        bool GraphToAsset(Vector2 canvasSize,
+            IList<NodeDataWithPosition<TNodeData>> nodesToSave,
+            IList<RouteDataWithNodeIndex> routesToSave);
+
+        bool AssetToGraph(out Vector2 canvasSize,
+            out IList<NodeDataWithPosition<TNodeData>> nodesLoaded,
+            out IList<RouteDataWithNodeIndex> routesLoaded);
+    }
 }

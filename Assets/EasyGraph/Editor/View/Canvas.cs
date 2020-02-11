@@ -30,7 +30,7 @@ namespace AillieoUtils.EasyGraph
         public static readonly Vector2 CanvasScaleRange = new Vector2(0.2f, 2f);
 
         public readonly OperationState<TNodeData,TRouteData> operation = new OperationState<TNodeData,TRouteData>();
-        private readonly NodeDataFactory<TNodeData,TRouteData> factory = new NodeDataFactory<TNodeData,TRouteData>();
+        private readonly NodeDataFactory<TNodeData> factory = new NodeDataFactory<TNodeData>();
 
         internal readonly Dictionary<int, List<CanvasElement<TNodeData,TRouteData>>> managedElements = new Dictionary<int, List<CanvasElement<TNodeData,TRouteData>>>();
         internal readonly List<int> managedLayers = new List<int>();
@@ -317,13 +317,5 @@ namespace AillieoUtils.EasyGraph
 
             CheckBounds();
         }
-    }
-
-    public class Canvas<TNodeData>
-        : Canvas<TNodeData, DefaultRouteDataWrapper>
-        where TNodeData : INodeDataWrapper
-    {
-        public Canvas(Vector2 size):base(size)
-        {}
     }
 }

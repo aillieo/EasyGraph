@@ -4,6 +4,18 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
+    public class NodeDataWithPosition<T> where T : INodeDataWrapper
+    {
+        public readonly Vector2 position;
+        public readonly T nodeData;
+
+        public NodeDataWithPosition(Vector2 position, T nodeData)
+        {
+            this.position = position;
+            this.nodeData = nodeData;
+        }
+    }
+
     public class RouteDataWithNodeIndex<T> where T : IRouteDataWrapper
     {
         public readonly int fromIndex;
@@ -18,16 +30,10 @@ namespace AillieoUtils.EasyGraph
         }
     }
 
-    public class NodeDataWithPosition<T> where T : INodeDataWrapper
+    public class RouteDataWithNodeIndex : RouteDataWithNodeIndex<DefaultRouteDataWrapper>
     {
-        public readonly Vector2 position;
-        public readonly T nodeData;
-
-        public NodeDataWithPosition(Vector2 position, T nodeData)
-        {
-            this.position = position;
-            this.nodeData = nodeData;
-        }
+        public RouteDataWithNodeIndex(int fromIndex, int toIndex) : base(fromIndex,toIndex,new DefaultRouteDataWrapper())
+        {}
     }
 }
 

@@ -8,14 +8,14 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class Graph<TAsset,TNodeData,TRouteData>
+    public abstract class BaseGraph<TNodeData,TRouteData>
         where TNodeData : INodeDataWrapper
         where TRouteData : IRouteDataWrapper,new()
-        where TAsset : IGraphAsset<TNodeData,TRouteData>
     {
-        private readonly Canvas<TNodeData, TRouteData> canvas;
 
-        public Graph(Vector2 size)
+        protected Canvas<TNodeData, TRouteData> canvas { get; private set; }
+
+        public BaseGraph(Vector2 size)
         {
             canvas = new Canvas<TNodeData, TRouteData>(size);
         }
@@ -65,6 +65,15 @@ namespace AillieoUtils.EasyGraph
             }
             return hasSelected;
         }
+    }
+
+    public class Graph<TAsset,TNodeData,TRouteData> : BaseGraph<TNodeData,TRouteData>
+        where TNodeData : INodeDataWrapper
+        where TRouteData : IRouteDataWrapper,new()
+        where TAsset : IGraphAsset<TNodeData,TRouteData>
+    {
+        public Graph(Vector2 size):base(size)
+        {}
 
         private Dictionary<Node<TNodeData,TRouteData>, int> indexByNode = new Dictionary<Node<TNodeData, TRouteData>, int>();
         public bool Save(TAsset serializedData)
@@ -158,20 +167,100 @@ namespace AillieoUtils.EasyGraph
         }
     }
 
-    public class Graph<TAsset,TNodeData>
-        : Graph<TAsset,TNodeData,DefaultRouteDataWrapper>
+    public class Graph<TAsset,TNodeData> : BaseGraph<TNodeData,DefaultRouteDataWrapper>
         where TNodeData : INodeDataWrapper
-        where TAsset : IGraphAsset<TNodeData,DefaultRouteDataWrapper>
+        where TAsset : IGraphAsset<TNodeData>
     {
         public Graph(Vector2 size) : base(size)
         {}
 
+        private Dictionary<Node<TNodeData,DefaultRouteDataWrapper>, int> indexByNode = new Dictionary<Node<TNodeData,DefaultRouteDataWrapper>, int>();
+        public bool Save(TAsset serializedData)
+        {
+            indexByNode.Clear();
+            try
+            {
+                IList<NodeDataWithPosition<TNodeData>> nodes = new List<NodeDataWithPosition<TNodeData>>();
+                IList<RouteDataWithNodeIndex> routes = new List<RouteDataWithNodeIndex>();
+                if (canvas.managedElements.ContainsKey(LayerDefine.Node))
+                {
+                    var nodesOnCanvas = canvas.managedElements[LayerDefine.Node];
+                    for (int i = 0; i < nodesOnCanvas.Count; ++i)
+                    {
+                        var node = nodesOnCanvas[i] as Node<TNodeData,DefaultRouteDataWrapper>;
+                        if (node != null)
+                        {
+                            nodes.Add(new NodeDataWithPosition<TNodeData>(node.Position, node.data));
+                            indexByNode.Add(node, i);
+                        }
+                    }
+                }
+
+                if (canvas.managedElements.ContainsKey(LayerDefine.Route))
+                {
+                    var routesOnCanvas = canvas.managedElements[LayerDefine.Route];
+                    foreach (var ele in routesOnCanvas)
+                    {
+                        var route = ele as Route<TNodeData,DefaultRouteDataWrapper>;
+                        if (route != null)
+                        {
+                            routes.Add(new RouteDataWithNodeIndex(
+                                indexByNode[route.nodeFrom],
+                                indexByNode[route.nodeTo]));
+                        }
+                    }
+                }
+
+                return serializedData.GraphToAsset(canvas.Size, nodes, routes);
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Save graph failed\n" + e);
+                return false;
+            }
+        }
+
+        private static List<Node<TNodeData>> nodeByIndex = new List<Node<TNodeData>>();
         public static bool Load(TAsset serializedData, out Graph<TAsset,TNodeData> graph)
         {
-            Graph<TAsset, TNodeData, DefaultRouteDataWrapper> baseGraph = null;
-            bool success = Graph<TAsset, TNodeData, DefaultRouteDataWrapper>.Load(serializedData, out baseGraph);
-            graph = baseGraph as Graph<TAsset, TNodeData>;
-            return success;
+            IList<NodeDataWithPosition<TNodeData>> nodes = null;
+            IList<RouteDataWithNodeIndex> routes = null;
+            Vector2 size = Vector2.zero;
+
+            graph = null;
+            nodeByIndex.Clear();
+
+            try
+            {
+                if (serializedData.AssetToGraph(out size, out nodes, out routes))
+                {
+                    graph = new Graph<TAsset, TNodeData>(size);
+                    if(nodes != null)
+                    {
+                        for (int i = 0 ; i< nodes.Count; ++ i)
+                        {
+                            var node = new Node<TNodeData>(nodes[i].nodeData, nodes[i].position);
+                            graph.canvas.AddElement(node);
+                            nodeByIndex.Add(node);
+                        }
+                    }
+                    if(routes != null)
+                    {
+                        foreach (var r in routes)
+                        {
+                            graph.canvas.AddElement(new Route<TNodeData>(
+                                nodeByIndex[r.fromIndex],
+                                nodeByIndex[r.toIndex]));
+                        }
+                    }
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError("Load graph failed\n" + e);
+            }
+
+            return graph != null;
         }
     }
 }

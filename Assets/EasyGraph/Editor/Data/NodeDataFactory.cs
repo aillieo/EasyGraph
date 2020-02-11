@@ -6,9 +6,8 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public class NodeDataFactory<TNodeData,TRouteData>
+    public class NodeDataFactory<TNodeData>
         where TNodeData : INodeDataWrapper
-        where TRouteData : IRouteDataWrapper
     {
         public INodeDataCreator<TNodeData>[] Creators
         {
