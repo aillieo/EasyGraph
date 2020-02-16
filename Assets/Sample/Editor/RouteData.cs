@@ -22,6 +22,8 @@ public class RouteData : IRouteDataWrapper
 
     public void OnDetailGUI(Rect rect)
     {
+        GUI.Box(rect,GUIContent.none, new GUIStyle("box"));
+        GUILayout.Label("Color:");
         this.data = EditorGUILayout.ColorField(this.data);
     }
 }

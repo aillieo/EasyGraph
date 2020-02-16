@@ -23,15 +23,17 @@ public class NodeData : INodeDataWrapper
     public void OnGUI(Rect rect)
     {
         GUI.Box(rect, GUIContent.none, new GUIStyle("window"));
-        GUI.Label(
-        new Rect(rect.position + EditorGUIUtility.singleLineHeight * Vector2.up, new Vector2(rect.width, EditorGUIUtility.singleLineHeight)),
-        data.strData);
+        GUILayout.Space(EditorGUIUtility.singleLineHeight);
+        GUILayout.Label(data.strData);
+        GUILayout.Label(data.intData.ToString());
     }
 
     public void OnDetailGUI(Rect rect)
     {
-        data.strData = GUI.TextField(
-        new Rect(rect.position, new Vector2(rect.width, EditorGUIUtility.singleLineHeight)),
-        data.strData);
+        GUI.Box(rect,GUIContent.none, new GUIStyle("box"));
+        GUILayout.Label("String:");
+        data.strData = GUILayout.TextField(data.strData);
+        GUILayout.Label("Int:");
+        data.intData = EditorGUILayout.IntField(data.intData);
     }
 }

@@ -15,22 +15,36 @@ public class TestWindow : EditorWindow
 
     private Graph<GraphAsset,NodeData,RouteData> graph = new Graph<GraphAsset, NodeData, RouteData>(new Vector2(1280f, 640f));
 
-    readonly string filePath = "Assets/Sample/TestGraphAsset.asset";
+    private string filePath = "Assets/Sample/TestGraphAsset.asset";
 
     private void OnGUI()
     {
         float singleLineHeight = EditorGUIUtility.singleLineHeight;
+        Vector2 offset = new Vector2(160, singleLineHeight * 5);
+        Rect viewRect = this.position;
+        viewRect.position = Vector2.zero;
+        viewRect.width -= (offset.x + 2);
 
-        Rect pos = position;
-        pos.position = Vector2.zero;
-
-        Rect viewRect = pos.OffsetY(3 * singleLineHeight).SetHeight(pos.size.y - singleLineHeight * 6 - GUIUtils.titleHeight);
-
+        // main
         graph.OnGUI(viewRect);
 
-        graph.OnGUIDetail(viewRect.OffsetY(-2 * singleLineHeight).SetHeight(singleLineHeight).SetWidth(200));
+        // detail
+        Rect detail = viewRect.SetWidth(offset.x);
+        detail.position = Vector2.zero;
+        detail = detail.OffsetX(position.width - offset.x);
+        detail.height -= (offset.y + 2);
+        graph.OnGUIDetail(detail);
 
-        if (GUI.Button(viewRect.OffsetY(viewRect.height).SetHeight(singleLineHeight).SetWidth(200),"Save"))
+        // save&load
+        Rect assetIO = new Rect(detail.position, offset);
+        assetIO = assetIO.OffsetY(position.height - offset.y);
+        GUILayout.BeginArea(assetIO);
+
+        float move = singleLineHeight * 1.2f;
+        GUILayout.Label("Asset path:");
+
+        filePath = GUILayout.TextField(filePath);
+        if (GUILayout.Button("Save"))
         {
             GraphAsset asset = CreateInstance<GraphAsset>();
             if(graph.Save(asset))
@@ -41,7 +55,7 @@ public class TestWindow : EditorWindow
             }
         }
 
-        if (GUI.Button(viewRect.OffsetY(viewRect.height + 2 * singleLineHeight).SetHeight(singleLineHeight).SetWidth(200),"Load"))
+        if (GUILayout.Button("Load"))
         {
             GraphAsset data = AssetDatabase.LoadAssetAtPath<GraphAsset>(filePath);
             if(data != null)
@@ -53,5 +67,6 @@ public class TestWindow : EditorWindow
                 }
             }
         }
+        GUILayout.EndArea();
     }
 }
