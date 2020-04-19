@@ -167,15 +167,15 @@ namespace AillieoUtils.EasyGraph
             GenericMenu genericMenu = new GenericMenu();
             Vector2 posCanvas = WindowPosToCanvasPos(evt.mousePosition);
 
-            if(factory.Creators.Length == 0)
+            if(factory.Entries.Length == 0)
             {
                 genericMenu.AddItem(new GUIContent("Create Node"), false, () => this.AddElement(new Node<TNodeData,TRouteData>(System.Activator.CreateInstance<TNodeData>(), posCanvas)));
             }
             else
             {
-                foreach (var creator in factory.Creators)
+                foreach (var creator in factory.Entries)
                 {
-                    genericMenu.AddItem(new GUIContent("Create Node/" + creator.MenuName), false, () => this.AddElement(new Node<TNodeData,TRouteData>(creator.Create(), posCanvas)));
+                    genericMenu.AddItem(new GUIContent("Create Node/" + creator.menuName), false, () => this.AddElement(new Node<TNodeData,TRouteData>(creator.createFunc(), posCanvas)));
                 }
             }
 

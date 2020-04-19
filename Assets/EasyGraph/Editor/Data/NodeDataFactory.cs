@@ -9,24 +9,45 @@ namespace AillieoUtils.EasyGraph
     public class NodeDataFactory<TNodeData>
         where TNodeData : INodeDataWrapper
     {
-        public INodeDataCreator<TNodeData>[] Creators
+        public NodeDataCreatorEntry<TNodeData>[] Entries
         {
             get
             {
-                if (creators == null)
+                if (entries == null)
                 {
-                    var creatorTypes = System.AppDomain.CurrentDomain.GetAssemblies()
+                    var creatorTypes1 = System.AppDomain.CurrentDomain.GetAssemblies()
                         .SelectMany(a => a.GetTypes()
                             .Where(t => t.GetInterfaces().Contains(typeof(INodeDataCreator<TNodeData>))
-                                        && !t.IsAbstract)).ToArray();
-                    creators = creatorTypes.Select(t => Activator.CreateInstance(t) as INodeDataCreator<TNodeData>).ToArray();
+                                        && !t.IsAbstract));
+                    var creatorTypes2 = System.AppDomain.CurrentDomain.GetAssemblies()
+                        .SelectMany(a => a.GetTypes()
+                            .Where(t => t.GetInterfaces().Contains(typeof(INodeDataCreators<TNodeData>))
+                                        && !t.IsAbstract));
+                    List<NodeDataCreatorEntry<TNodeData>> list = creatorTypes1.Select(t =>
+                        (Activator.CreateInstance(t) as INodeDataCreator<TNodeData>).GetCreatorEntry()).ToList();
+                    creatorTypes2.ToList().ForEach(t =>
+                    {
+                        list.AddRange((Activator.CreateInstance(t) as INodeDataCreators<TNodeData>).GetCreatorEntries());
+                    });
+
+                    list.Sort((a, b) =>
+                    {
+                        if (a.order != b.order)
+                        {
+                            return a.order.CompareTo(b.order);
+                        }
+
+                        return string.Compare(a.menuName, b.menuName, StringComparison.Ordinal);
+                    });
+
+                    entries = list.ToArray();
                 }
-                return creators;
+
+                return entries;
             }
         }
 
-        private static INodeDataCreator<TNodeData>[] creators = null;
-
+        private static NodeDataCreatorEntry<TNodeData>[] entries = null;
     }
 
 }

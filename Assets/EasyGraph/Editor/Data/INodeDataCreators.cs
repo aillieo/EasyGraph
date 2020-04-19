@@ -4,10 +4,10 @@ using UnityEngine;
 
 namespace AillieoUtils.EasyGraph
 {
-    public interface INodeDataCreator<TNodeData>
+    public interface INodeDataCreators<TNodeData>
         where TNodeData : INodeDataWrapper
     {
-        NodeDataCreatorEntry<TNodeData> GetCreatorEntry();
+        NodeDataCreatorEntry<TNodeData>[] GetCreatorEntries();
     }
 
 }
